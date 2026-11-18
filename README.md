@@ -2,7 +2,10 @@
 
 > A modern, high-density, interactive character dashboard and digital character sheet designed for **Dungeons & Dragons 5th Edition (2024 Rules)**. Built with React 18, TypeScript, Vite, and Tailwind CSS.
 
+🌐 **Live Web & Tablet App**: [**https://gillsspace.github.io/dnd-dash/**](https://gillsspace.github.io/dnd-dash/)
+
 ![DnD 2024](https://img.shields.io/badge/D%26D%20Rules-2024%205e-8b0000?style=for-the-badge)
+![PWA Ready](https://img.shields.io/badge/PWA-Offline%20Ready-success?style=for-the-badge&logo=pwa)
 ![React](https://img.shields.io/badge/React-18.3-61dafb?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?style=for-the-badge&logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-6.0-646cff?style=for-the-badge&logo=vite)
@@ -178,6 +181,12 @@ It features complete support for the **2024 Revised 5th Edition ruleset**, inclu
 - Click the **Print** icon in the top header (or press `Ctrl + P`).
 - Select your printer or choose **"Save as PDF"**.
 - Ensure background graphics are enabled in your browser print dialog for full parchment styling.
+
+### 7. Installing as a Tablet / Mobile App (PWA & Offline Use)
+- Open **[https://gillsspace.github.io/dnd-dash/](https://gillsspace.github.io/dnd-dash/)** on your Samsung tablet (or any tablet/phone) in Chrome or Samsung Internet.
+- Look for the **"Install DnD Dash"** prompt in the address bar, or tap the three dots menu (**⋮**) and tap **"Install App"** (or **"Add to Home Screen"**).
+- DnD Dash will install directly to your device home screen and launch in a dedicated, full-screen standalone window without any browser borders or address bars.
+- **100% Offline Capability**: All rules, 400+ spells, and character data are cached locally on your device via service worker—making it completely playable at game tables without internet access.
 
 ---
 

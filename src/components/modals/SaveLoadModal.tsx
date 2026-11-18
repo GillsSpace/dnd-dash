@@ -57,6 +57,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
   const [saveFiles, setSaveFiles] = useState<SaveFileInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isStaticHost, setIsStaticHost] = useState(false);
 
   // Filename input state in save mode
   const [targetFilename, setTargetFilename] = useState<string>('');
@@ -80,11 +81,12 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
       if (res.ok) {
         const data = await res.json();
         setSaveFiles(data);
+        setIsStaticHost(false);
       } else {
-        setError('Failed to list files from project /saves folder.');
+        setIsStaticHost(true);
       }
-    } catch (e: any) {
-      setError('Could not reach project /api/saves endpoint.');
+    } catch {
+      setIsStaticHost(true);
     } finally {
       setLoading(false);
     }
@@ -253,18 +255,27 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 text-stone-600">
-            <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-stone-300 flex items-center gap-1">
-              <FolderOpen className="w-3 h-3 text-amber-700" />
-              <span>Location: project/saves/</span>
-            </span>
-            <button
-              type="button"
-              onClick={fetchSaves}
-              className="p-1 hover:bg-stone-300 rounded text-stone-600 hover:text-stone-900 transition-colors"
-              title="Refresh saves list"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+            {isStaticHost ? (
+              <span className="font-mono text-[11px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 flex items-center gap-1.5 font-medium shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                <span>Web / Tablet Mode (LocalStorage Active)</span>
+              </span>
+            ) : (
+              <>
+                <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-stone-300 flex items-center gap-1">
+                  <FolderOpen className="w-3 h-3 text-amber-700" />
+                  <span>Location: project/saves/</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={fetchSaves}
+                  className="p-1 hover:bg-stone-300 rounded text-stone-600 hover:text-stone-900 transition-colors"
+                  title="Refresh saves list"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -276,8 +287,8 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           </div>
         )}
 
-        {/* Save Form (Only in Save Mode) */}
-        {mode === 'save' && (
+        {/* Save Form (Only in Save Mode and Local Dev Server) */}
+        {mode === 'save' && !isStaticHost && (
           <form
             onSubmit={handleSaveToProject}
             className="p-3 bg-[#f6efe6] border-b border-stone-300 flex items-center gap-2 shrink-0 text-xs"
@@ -330,14 +341,56 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           </div>
         )}
 
-        {/* Folder View Table */}
+        {/* Folder View Table or Static Host Device Storage Card */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center justify-between px-1">
-            <span>Files in project /saves directory ({saveFiles.length})</span>
-            {mode === 'save' && (
-              <span className="font-normal text-stone-400">Click a file to select its name</span>
-            )}
-          </div>
+          {isStaticHost ? (
+            <div className="border border-stone-300 rounded-lg p-6 text-center text-stone-700 text-xs bg-white space-y-4 shadow-2xs">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-amber-800">
+                <HardDrive className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="font-fantasy font-bold text-stone-900 text-sm">
+                  {mode === 'save' ? 'Browser & Tablet Storage (Auto-Saved)' : 'Import Character JSON'}
+                </h4>
+                <p className="text-stone-600 text-xs max-w-md mx-auto leading-relaxed">
+                  {mode === 'save'
+                    ? 'All changes to your character are automatically saved to your device storage in real time. You can also download a standalone .json backup file to your tablet or computer.'
+                    : 'Select a previously saved .json character file from your tablet or computer to load.'}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-wrap justify-center gap-2">
+                {mode === 'save' ? (
+                  <button
+                    type="button"
+                    onClick={handleNativeSave}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#7b1113] hover:bg-[#630e10] text-white rounded font-bold transition-colors shadow-xs"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Character Backup (.json)</span>
+                  </button>
+                ) : (
+                  <label className="flex items-center gap-2 px-4 py-2 bg-[#1f4e78] hover:bg-[#163a5a] text-white rounded font-bold transition-colors shadow-xs cursor-pointer">
+                    <FolderOpen className="w-4 h-4" />
+                    <span>Choose JSON File From Device...</span>
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={handleTraditionalFileImport}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center justify-between px-1">
+                <span>Files in project /saves directory ({saveFiles.length})</span>
+                {mode === 'save' && (
+                  <span className="font-normal text-stone-400">Click a file to select its name</span>
+                )}
+              </div>
 
           {saveFiles.length === 0 ? (
             <div className="border border-dashed border-stone-300 rounded-md p-6 text-center text-stone-500 text-xs bg-white/50">
@@ -439,6 +492,8 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
                 );
               })}
             </div>
+          )}
+            </>
           )}
         </div>
 

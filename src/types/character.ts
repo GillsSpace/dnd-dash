@@ -1,3 +1,5 @@
+import { Spell } from './spell';
+
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
 export type SkillProficiency = 'none' | 'prof' | 'expert';
 
@@ -223,6 +225,7 @@ export interface CharacterData {
     spellNotes?: Record<string, string>;
     lockedSpellNames?: string[];
   };
+  customSpells?: Spell[];
   features: CharacterFeature[];
   languages: string[];
   proficiencies: {

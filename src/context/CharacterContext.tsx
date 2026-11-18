@@ -182,6 +182,22 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [masterSpells]);
 
+  // Synchronize any custom spells stored on character into masterSpells (and persist to localStorage)
+  useEffect(() => {
+    if (character.customSpells && Array.isArray(character.customSpells) && character.customSpells.length > 0) {
+      setMasterSpells((prevMaster) => {
+        const existingNames = new Set(prevMaster.map((s) => s.name.toLowerCase()));
+        const toAdd = character.customSpells!.filter(
+          (cs) => !existingNames.has(cs.name.toLowerCase())
+        );
+        if (toAdd.length > 0) {
+          return [...toAdd, ...prevMaster];
+        }
+        return prevMaster;
+      });
+    }
+  }, [character.customSpells]);
+
   // Track active save file in project /saves folder
   const [currentSaveFilename, setCurrentSaveFilename] = useState<string>(() => {
     return localStorage.getItem('dnd_current_save_filename') || 'character_sheet.json';
@@ -1247,6 +1263,21 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
+  const syncCustomSpellsFromCharacter = (char: CharacterData) => {
+    if (char && char.customSpells && Array.isArray(char.customSpells) && char.customSpells.length > 0) {
+      setMasterSpells((prevMaster) => {
+        const existingNames = new Set(prevMaster.map((s) => s.name.toLowerCase()));
+        const toAdd = char.customSpells!.filter(
+          (cs) => !existingNames.has(cs.name.toLowerCase())
+        );
+        if (toAdd.length > 0) {
+          return [...toAdd, ...prevMaster];
+        }
+        return prevMaster;
+      });
+    }
+  };
+
   const addCustomSpell = (newSpellData: Omit<Spell, 'id'>) => {
     const newId = `custom-${Date.now()}`;
     const newSpell: Spell = {
@@ -1254,6 +1285,19 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: newId,
     };
     setMasterSpells((prev) => [newSpell, ...prev]);
+    setCharacter((prev) => {
+      const existing = prev.customSpells || [];
+      const updated = [
+        newSpell,
+        ...existing.filter(
+          (s) => s.id !== newSpell.id && s.name.toLowerCase() !== newSpell.name.toLowerCase()
+        ),
+      ];
+      return {
+        ...prev,
+        customSpells: updated,
+      };
+    });
     togglePreparedSpell(newSpell.name);
   };
 
@@ -1276,6 +1320,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const parsed = JSON.parse(jsonString);
       if (parsed.name && parsed.abilities) {
         setCharacter(parsed);
+        syncCustomSpellsFromCharacter(parsed);
         return true;
       }
     } catch (e) {
@@ -1327,6 +1372,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const charData = await res.json();
         if (charData && charData.name && charData.abilities) {
           setCharacter(charData);
+          syncCustomSpellsFromCharacter(charData);
           setCurrentSaveFilename(filename);
           return true;
         }

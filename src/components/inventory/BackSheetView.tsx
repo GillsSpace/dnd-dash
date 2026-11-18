@@ -22,16 +22,16 @@ export const BackSheetView: React.FC = () => {
   const [editCategory, setEditCategory] = useState('Backpack');
   const [editDesc, setEditDesc] = useState('');
 
-  // Sorting State: 'none' | 'name' | 'unitWeight' | 'totalWeight'
-  type SortField = 'none' | 'name' | 'unitWeight' | 'totalWeight';
+  // Sorting State: 'none' | 'name' | 'qty' | 'unitWeight' | 'totalWeight'
+  type SortField = 'none' | 'name' | 'qty' | 'unitWeight' | 'totalWeight';
   type SortDirection = 'asc' | 'desc';
   const [sortField, setSortField] = useState<SortField>('none');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  const handleSort = (field: 'name' | 'unitWeight' | 'totalWeight') => {
+  const handleSort = (field: 'name' | 'qty' | 'unitWeight' | 'totalWeight') => {
     if (sortField !== field) {
       setSortField(field);
-      // For name: default A-Z (asc). For weights: default heaviest first (desc).
+      // For name: default A-Z (asc). For weights and qty: default highest first (desc).
       setSortDirection(field === 'name' ? 'asc' : 'desc');
     } else {
       // 3-way toggle: initial -> opposite -> none
@@ -67,6 +67,14 @@ export const BackSheetView: React.FC = () => {
       if (sortField === 'name') {
         const cmp = a.item.name.localeCompare(b.item.name, undefined, { sensitivity: 'base' });
         return sortDirection === 'asc' ? cmp : -cmp;
+      }
+      if (sortField === 'qty') {
+        const qA = a.item.qty ?? 1;
+        const qB = b.item.qty ?? 1;
+        if (qA !== qB) {
+          return sortDirection === 'asc' ? qA - qB : qB - qA;
+        }
+        return a.item.name.localeCompare(b.item.name, undefined, { sensitivity: 'base' });
       }
       if (sortField === 'unitWeight') {
         const wA = a.item.weight ?? 0;
@@ -302,19 +310,15 @@ export const BackSheetView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span>Item & Location ({character.inventory.length} items)</span>
                 {sortField !== 'none' && (
-                  <div className="flex items-center gap-1.5 bg-white/15 text-white px-2 py-0.5 rounded text-[10px] font-normal border border-white/20">
-                    <span>
-                      Sorted by: <strong className="font-semibold">{sortField === 'name' ? 'Name' : sortField === 'unitWeight' ? 'Unit Wt' : 'Total Wt'}</strong> ({sortField === 'name' ? (sortDirection === 'asc' ? 'A → Z' : 'Z → A') : (sortDirection === 'desc' ? 'Heaviest' : 'Lightest')})
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSortField('none')}
-                      className="hover:text-amber-200 ml-0.5 p-0.5 text-stone-200 hover:text-white"
-                      title="Reset sorting"
-                    >
-                      <RotateCcw className="w-3 h-3 inline" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSortField('none')}
+                    className="flex items-center gap-1 bg-white/15 hover:bg-white/25 text-white/90 hover:text-white px-1.5 py-0.5 rounded text-[10px] border border-white/20 transition-colors shadow-2xs"
+                    title="Reset to default item order"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
                 )}
               </div>
               <button
@@ -448,7 +452,30 @@ export const BackSheetView: React.FC = () => {
                       )}
                     </div>
                   </th>
-                  <th className="px-2 w-20 text-center">Qty</th>
+                  <th
+                    className="px-2 w-20 text-center cursor-pointer hover:bg-stone-200 transition-colors"
+                    onClick={() => handleSort('qty')}
+                    title={
+                      sortField === 'qty'
+                        ? sortDirection === 'desc'
+                          ? 'Sorted Highest Qty first. Click for Lowest first.'
+                          : 'Sorted Lowest Qty first. Click to reset.'
+                        : 'Click to sort by Quantity (Highest first)'
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      <span>Qty</span>
+                      {sortField === 'qty' ? (
+                        sortDirection === 'desc' ? (
+                          <ArrowDown className="w-3.5 h-3.5 text-[#1f4e78] stroke-[2.5]" />
+                        ) : (
+                          <ArrowUp className="w-3.5 h-3.5 text-[#1f4e78] stroke-[2.5]" />
+                        )
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-stone-400 opacity-60 hover:opacity-100" />
+                      )}
+                    </div>
+                  </th>
                   <th
                     className="px-2 w-24 text-center cursor-pointer hover:bg-stone-200 transition-colors"
                     onClick={() => handleSort('unitWeight')}

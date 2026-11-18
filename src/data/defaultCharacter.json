@@ -1,0 +1,257 @@
+{
+  "name": "",
+  "classes": [
+    {
+      "name": "Wizard",
+      "subclass": "",
+      "level": 1,
+      "hitDie": "d6",
+      "conBonus": 0,
+      "hp": 6
+    }
+  ],
+  "level": 1,
+  "race": "",
+  "gender": "",
+  "background": "",
+  "deity": "",
+  "alignment": "",
+  "size": "",
+  "inspiration": 0,
+  "appearance": {
+    "age": "",
+    "height": "",
+    "weight": "",
+    "eyes": "",
+    "skin": "",
+    "hair": ""
+  },
+  "baseStatsLocked": false,
+  "baseStatsEdited": false,
+  "abilities": {
+    "str": {
+      "score": 10,
+      "saveProf": false
+    },
+    "dex": {
+      "score": 10,
+      "saveProf": false
+    },
+    "con": {
+      "score": 10,
+      "saveProf": false
+    },
+    "int": {
+      "score": 10,
+      "saveProf": false
+    },
+    "wis": {
+      "score": 10,
+      "saveProf": false
+    },
+    "cha": {
+      "score": 10,
+      "saveProf": false
+    }
+  },
+  "hp": {
+    "current": 6,
+    "max": 6,
+    "temp": 0
+  },
+  "hitDice": [
+    {
+      "die": "d6",
+      "total": 1,
+      "current": 1,
+      "source": "Wizard"
+    }
+  ],
+  "deathSaves": {
+    "successes": 0,
+    "failures": 0
+  },
+  "armorClass": 10,
+  "armorWorn": [],
+  "shield": false,
+  "speed": {
+    "walk": 30,
+    "climb": 0,
+    "swim": 0,
+    "jump": 0,
+    "fly": 0,
+    "other": ""
+  },
+  "initiative": 0,
+  "proficiencyBonus": 2,
+  "passives": {
+    "perception": 10,
+    "insight": 10,
+    "investigation": 10
+  },
+  "skills": {
+    "acrobatics": {
+      "ability": "dex",
+      "prof": "none"
+    },
+    "animalHandling": {
+      "ability": "wis",
+      "prof": "none"
+    },
+    "arcana": {
+      "ability": "int",
+      "prof": "none"
+    },
+    "athletics": {
+      "ability": "str",
+      "prof": "none"
+    },
+    "deception": {
+      "ability": "cha",
+      "prof": "none"
+    },
+    "history": {
+      "ability": "int",
+      "prof": "none"
+    },
+    "insight": {
+      "ability": "wis",
+      "prof": "none"
+    },
+    "intimidation": {
+      "ability": "cha",
+      "prof": "none"
+    },
+    "investigation": {
+      "ability": "int",
+      "prof": "none"
+    },
+    "medicine": {
+      "ability": "wis",
+      "prof": "none"
+    },
+    "nature": {
+      "ability": "int",
+      "prof": "none"
+    },
+    "perception": {
+      "ability": "wis",
+      "prof": "none"
+    },
+    "performance": {
+      "ability": "cha",
+      "prof": "none"
+    },
+    "persuasion": {
+      "ability": "cha",
+      "prof": "none"
+    },
+    "religion": {
+      "ability": "int",
+      "prof": "none"
+    },
+    "sleightOfHand": {
+      "ability": "dex",
+      "prof": "none"
+    },
+    "stealth": {
+      "ability": "dex",
+      "prof": "none"
+    },
+    "survival": {
+      "ability": "wis",
+      "prof": "none"
+    }
+  },
+  "weapons": [],
+  "ammunition": [],
+  "specialAttacks": "",
+  "specialDefenses": "",
+  "conditions": {
+    "Blinded": false,
+    "Charmed": false,
+    "Deafened": false,
+    "Frightened": false,
+    "Grappled": false,
+    "Incapacitated": false,
+    "Invisible": false,
+    "Paralysed": false,
+    "Petrified": false,
+    "Poisoned": false,
+    "Prone": false,
+    "Restrained": false,
+    "Stunned": false,
+    "Unconscious": false
+  },
+  "exhaustionLevel": 0,
+  "otherConditionsNotes": "",
+  "resources": [],
+  "spellcasting": {
+    "stat": "INT",
+    "saveDC": 10,
+    "attackMod": 2,
+    "slots": {
+      "1": {
+        "total": 2,
+        "used": 0
+      },
+      "2": {
+        "total": 0,
+        "used": 0
+      },
+      "3": {
+        "total": 0,
+        "used": 0
+      },
+      "4": {
+        "total": 0,
+        "used": 0
+      },
+      "5": {
+        "total": 0,
+        "used": 0
+      },
+      "6": {
+        "total": 0,
+        "used": 0
+      },
+      "7": {
+        "total": 0,
+        "used": 0
+      },
+      "8": {
+        "total": 0,
+        "used": 0
+      },
+      "9": {
+        "total": 0,
+        "used": 0
+      }
+    },
+    "preparedSpellNames": [],
+    "spellNotes": {},
+    "lockedSpellNames": []
+  },
+  "features": [],
+  "languages": [
+    "Common"
+  ],
+  "proficiencies": {
+    "armor": [],
+    "weapons": [],
+    "tools": []
+  },
+  "inventory": [],
+  "currency": {
+    "cp": 0,
+    "sp": 0,
+    "ep": 0,
+    "gp": 0,
+    "pp": 0
+  },
+  "notes": [],
+  "roleplaying": {
+    "personality": "",
+    "bio": ""
+  }
+}

@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor & IDE directories
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Character Saves (User & Campaign Specific)
+/saves/*
+!/saves/.gitkeep
+*.save.json
+*character_sheet*.json
+
+# Custom & Homebrew Spells
+/custom_spells/
+/custom-spells/
+custom_spells.json
+*custom_spell*.json
+*custom-spell*.json

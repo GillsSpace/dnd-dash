@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0b0e14] text-slate-100;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Remove number input spinner arrows globally across all browsers */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* Custom fantasy check box matching Armor Equip Check (#1f4e78 navy, white check, rounded border) */
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 0.25rem;
+    border: 1px solid #d6d3d1;
+    background-color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    flex-shrink: 0;
+    position: relative;
+    user-select: none;
+    outline: none;
+  }
+
+  input[type="checkbox"]:hover {
+    border-color: #a8a29e;
+  }
+
+  input[type="checkbox"]:focus {
+    outline: none;
+  }
+
+  input[type="checkbox"]:checked {
+    background-color: #1f4e78;
+    border-color: #153654;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.2 8.2L6.4 11.4L12.8 4.6' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 75% 75%;
+  }
+
+  input[type="checkbox"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+/* Custom scrollbar for clean fantasy aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f141c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #283142;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3e4c63;
+}
+
+/* Print styles for native PDF and paper printing */
+@page {
+  size: letter portrait;
+  margin: 0.35in 0.4in;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  html, body, #root {
+    background: #ffffff !important;
+    color: #1c1917 !important;
+    zoom: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .min-h-screen {
+    zoom: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    min-height: auto !important;
+  }
+
+  .print-page-break {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

@@ -1,0 +1,580 @@
+[
+  {
+    "name": "Club",
+    "category": "Simple Melee",
+    "damage": "1d4",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Light"
+    ],
+    "mastery": "Slow",
+    "weight": "2 lb.",
+    "cost": "1 SP",
+    "range": "Melee"
+  },
+  {
+    "name": "Dagger",
+    "category": "Simple Melee",
+    "damage": "1d4",
+    "damageType": "Piercing",
+    "properties": [
+      "Finesse",
+      "Light",
+      "Thrown (Range 20/60)"
+    ],
+    "mastery": "Nick",
+    "weight": "1 lb.",
+    "cost": "2 GP",
+    "range": "20/60"
+  },
+  {
+    "name": "Greatclub",
+    "category": "Simple Melee",
+    "damage": "1d8",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Two-Handed"
+    ],
+    "mastery": "Push",
+    "weight": "10 lb.",
+    "cost": "2 SP",
+    "range": "Melee"
+  },
+  {
+    "name": "Handaxe",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Light",
+      "Thrown (Range 20/60)"
+    ],
+    "mastery": "Vex",
+    "weight": "2 lb.",
+    "cost": "5 GP",
+    "range": "20/60"
+  },
+  {
+    "name": "Javelin",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Thrown (Range 30/120)"
+    ],
+    "mastery": "Slow",
+    "weight": "2 lb.",
+    "cost": "5 SP",
+    "range": "30/120"
+  },
+  {
+    "name": "Light Hammer",
+    "category": "Simple Melee",
+    "damage": "1d4",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Light",
+      "Thrown (Range 20/60)"
+    ],
+    "mastery": "Nick",
+    "weight": "2 lb.",
+    "cost": "2 GP",
+    "range": "20/60"
+  },
+  {
+    "name": "Mace",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Bludgeoning",
+    "properties": [],
+    "mastery": "Sap",
+    "weight": "4 lb.",
+    "cost": "5 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Pitchfork",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Reach",
+      "Two-Handed"
+    ],
+    "mastery": "Push",
+    "weight": "3 lb.",
+    "cost": "1 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Quarterstaff",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Versatile (1d8)"
+    ],
+    "mastery": "Topple",
+    "weight": "4 lb.",
+    "cost": "2 SP",
+    "range": "Melee"
+  },
+  {
+    "name": "Sickle",
+    "category": "Simple Melee",
+    "damage": "1d4",
+    "damageType": "Slashing",
+    "properties": [
+      "Light"
+    ],
+    "mastery": "Nick",
+    "weight": "2 lb.",
+    "cost": "1 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Spear",
+    "category": "Simple Melee",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Thrown (Range 20/60)",
+      "Versatile (1d8)"
+    ],
+    "mastery": "Sap",
+    "weight": "3 lb.",
+    "cost": "1 GP",
+    "range": "20/60"
+  },
+  {
+    "name": "Unarmed Strike",
+    "category": "Simple Melee",
+    "damage": "1",
+    "damageType": "Bludgeoning",
+    "properties": [],
+    "mastery": "None",
+    "weight": "—",
+    "cost": "—",
+    "range": "Melee"
+  },
+  {
+    "name": "Dart",
+    "category": "Simple Ranged",
+    "damage": "1d4",
+    "damageType": "Piercing",
+    "properties": [
+      "Finesse",
+      "Thrown (Range 20/60)"
+    ],
+    "mastery": "Vex",
+    "weight": "1/4 lb.",
+    "cost": "5 CP",
+    "range": "20/60"
+  },
+  {
+    "name": "Light Crossbow",
+    "category": "Simple Ranged",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 80/320; Bolt)",
+      "Loading",
+      "Two-Handed"
+    ],
+    "mastery": "Slow",
+    "weight": "5 lb.",
+    "cost": "25 GP",
+    "range": "80/320"
+  },
+  {
+    "name": "Shortbow",
+    "category": "Simple Ranged",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 80/320; Arrow)",
+      "Two-Handed"
+    ],
+    "mastery": "Vex",
+    "weight": "2 lb.",
+    "cost": "25 GP",
+    "range": "80/320"
+  },
+  {
+    "name": "Sling",
+    "category": "Simple Ranged",
+    "damage": "1d4",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Ammunition (Range 30/120; Bullet)"
+    ],
+    "mastery": "Slow",
+    "weight": "—",
+    "cost": "1 SP",
+    "range": "30/120"
+  },
+  {
+    "name": "Battleaxe",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Slashing",
+    "properties": [
+      "Versatile (1d10)"
+    ],
+    "mastery": "Topple",
+    "weight": "4 lb.",
+    "cost": "10 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Flail",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Bludgeoning",
+    "properties": [],
+    "mastery": "Sap",
+    "weight": "2 lb.",
+    "cost": "10 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Glaive",
+    "category": "Martial Melee",
+    "damage": "1d10",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Reach",
+      "Two-Handed"
+    ],
+    "mastery": "Graze",
+    "weight": "6 lb.",
+    "cost": "20 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Greataxe",
+    "category": "Martial Melee",
+    "damage": "1d12",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Two-Handed"
+    ],
+    "mastery": "Cleave",
+    "weight": "7 lb.",
+    "cost": "30 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Greatsword",
+    "category": "Martial Melee",
+    "damage": "2d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Two-Handed"
+    ],
+    "mastery": "Graze",
+    "weight": "6 lb.",
+    "cost": "50 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Halberd",
+    "category": "Martial Melee",
+    "damage": "1d10",
+    "damageType": "Slashing",
+    "properties": [
+      "Heavy",
+      "Reach",
+      "Two-Handed"
+    ],
+    "mastery": "Cleave",
+    "weight": "6 lb.",
+    "cost": "20 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Lance",
+    "category": "Martial Melee",
+    "damage": "1d10",
+    "damageType": "Piercing",
+    "properties": [
+      "Heavy",
+      "Reach",
+      "Two-Handed (unless mounted)"
+    ],
+    "mastery": "Topple",
+    "weight": "6 lb.",
+    "cost": "10 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Longsword",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Slashing",
+    "properties": [
+      "Versatile (1d10)"
+    ],
+    "mastery": "Sap",
+    "weight": "3 lb.",
+    "cost": "15 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Maul",
+    "category": "Martial Melee",
+    "damage": "2d6",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Heavy",
+      "Two-Handed"
+    ],
+    "mastery": "Topple",
+    "weight": "10 lb.",
+    "cost": "10 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Morningstar",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [],
+    "mastery": "Sap",
+    "weight": "4 lb.",
+    "cost": "15 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Pike",
+    "category": "Martial Melee",
+    "damage": "1d10",
+    "damageType": "Piercing",
+    "properties": [
+      "Heavy",
+      "Reach",
+      "Two-Handed"
+    ],
+    "mastery": "Push",
+    "weight": "18 lb.",
+    "cost": "5 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Rapier",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Finesse"
+    ],
+    "mastery": "Vex",
+    "weight": "2 lb.",
+    "cost": "25 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Scimitar",
+    "category": "Martial Melee",
+    "damage": "1d6",
+    "damageType": "Slashing",
+    "properties": [
+      "Finesse",
+      "Light"
+    ],
+    "mastery": "Nick",
+    "weight": "3 lb.",
+    "cost": "25 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Shortsword",
+    "category": "Martial Melee",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Finesse",
+      "Light"
+    ],
+    "mastery": "Vex",
+    "weight": "2 lb.",
+    "cost": "10 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Trident",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Thrown (Range 20/60)",
+      "Versatile (1d10)"
+    ],
+    "mastery": "Topple",
+    "weight": "4 lb.",
+    "cost": "5 GP",
+    "range": "20/60"
+  },
+  {
+    "name": "Warhammer",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Versatile (1d10)"
+    ],
+    "mastery": "Push",
+    "weight": "5 lb.",
+    "cost": "15 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "War Pick",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Versatile (1d10)"
+    ],
+    "mastery": "Sap",
+    "weight": "2 lb.",
+    "cost": "5 GP",
+    "range": "Melee"
+  },
+  {
+    "name": "Weighted Chain",
+    "category": "Martial Melee",
+    "damage": "1d8",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Finesse",
+      "Heavy",
+      "Reach",
+      "Two-Handed"
+    ],
+    "mastery": "Graze",
+    "weight": "19 lb.",
+    "cost": "15 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Whip",
+    "category": "Martial Melee",
+    "damage": "1d4",
+    "damageType": "Slashing",
+    "properties": [
+      "Finesse",
+      "Reach"
+    ],
+    "mastery": "Slow",
+    "weight": "3 lb.",
+    "cost": "2 GP",
+    "range": "Melee (Reach)"
+  },
+  {
+    "name": "Blowgun",
+    "category": "Martial Ranged",
+    "damage": "1",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 25/100; Needle)",
+      "Loading"
+    ],
+    "mastery": "Vex",
+    "weight": "1 lb.",
+    "cost": "10 GP",
+    "range": "25/100"
+  },
+  {
+    "name": "Bola",
+    "category": "Martial Ranged",
+    "damage": "1",
+    "damageType": "Bludgeoning",
+    "properties": [
+      "Finesse",
+      "Thrown (Range 20/40)"
+    ],
+    "mastery": "Topple",
+    "weight": "2 lb.",
+    "cost": "2 GP",
+    "range": "20/40"
+  },
+  {
+    "name": "Hand Crossbow",
+    "category": "Martial Ranged",
+    "damage": "1d6",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 30/120; Bolt)",
+      "Light",
+      "Loading"
+    ],
+    "mastery": "Vex",
+    "weight": "3 lb.",
+    "cost": "75 GP",
+    "range": "30/120"
+  },
+  {
+    "name": "Heavy Crossbow",
+    "category": "Martial Ranged",
+    "damage": "1d10",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 100/400; Bolt)",
+      "Heavy",
+      "Loading",
+      "Two-Handed"
+    ],
+    "mastery": "Push",
+    "weight": "18 lb.",
+    "cost": "50 GP",
+    "range": "100/400"
+  },
+  {
+    "name": "Longbow",
+    "category": "Martial Ranged",
+    "damage": "1d8",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 150/600; Arrow)",
+      "Heavy",
+      "Two-Handed"
+    ],
+    "mastery": "Slow",
+    "weight": "2 lb.",
+    "cost": "50 GP",
+    "range": "150/600"
+  },
+  {
+    "name": "Musket",
+    "category": "Martial Ranged",
+    "damage": "1d12",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 40/120; Bullet)",
+      "Loading",
+      "Two-Handed"
+    ],
+    "mastery": "Slow",
+    "weight": "10 lb.",
+    "cost": "500 GP",
+    "range": "40/120"
+  },
+  {
+    "name": "Pistol",
+    "category": "Martial Ranged",
+    "damage": "1d10",
+    "damageType": "Piercing",
+    "properties": [
+      "Ammunition (Range 30/90; Bullet)",
+      "Loading"
+    ],
+    "mastery": "Vex",
+    "weight": "3 lb.",
+    "cost": "250 GP",
+    "range": "30/90"
+  }
+]

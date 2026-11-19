@@ -30,7 +30,7 @@ interface CharacterContextType {
   addWeapon: (weapon: Weapon, weight?: number) => void;
   removeWeapon: (id: string) => void;
   updateWeapon: (weapon: Weapon) => void;
-  setWeaponAbility: (id: string, ability: 'dex' | 'str') => void;
+  setWeaponAbility: (id: string, ability: AbilityKey) => void;
   toggleWeaponMastery: (id: string) => void;
   // Ammunition
   addAmmunition: (name?: string, total?: number) => void;
@@ -103,7 +103,17 @@ interface CharacterContextType {
 const STORAGE_KEY_CHAR = 'dnd_dash_character_v4';
 const STORAGE_KEY_SPELLS = 'dnd_dash_master_spells_2024_v3';
 
-export const calculateArmorClass = (armorList: ArmorInfo[] = [], dexMod: number): number => {
+export const calculateArmorClass = (
+  armorList: ArmorInfo[] = [],
+  dexMod: number,
+  extra?: {
+    conMod?: number;
+    wisMod?: number;
+    unarmoredFormula?: 'standard' | 'barbarian' | 'monk' | 'mageArmor' | 'custom';
+    customBaseAc?: number;
+    acBonus?: number;
+  }
+): number => {
   const equipped = (armorList || []).filter((a) => a.equipped !== false);
   const bodyArmor = equipped.find((a) =>
     ['L', 'M', 'H', 'LIGHT', 'MEDIUM', 'HEAVY'].includes(a.type.toUpperCase())
@@ -111,7 +121,18 @@ export const calculateArmorClass = (armorList: ArmorInfo[] = [], dexMod: number)
   const shield = equipped.find((a) => a.type.toLowerCase().includes('shield'));
 
   let baseAc = 10 + dexMod;
-  if (bodyArmor) {
+  if (!bodyArmor) {
+    const formula = extra?.unarmoredFormula || 'standard';
+    if (formula === 'barbarian') {
+      baseAc = 10 + dexMod + (extra?.conMod ?? 0);
+    } else if (formula === 'monk') {
+      baseAc = 10 + dexMod + (extra?.wisMod ?? 0);
+    } else if (formula === 'mageArmor') {
+      baseAc = 13 + dexMod;
+    } else if (formula === 'custom' && extra?.customBaseAc !== undefined) {
+      baseAc = extra.customBaseAc + dexMod;
+    }
+  } else {
     const t = bodyArmor.type.toUpperCase();
     if (t === 'L' || t === 'LIGHT') {
       baseAc = bodyArmor.ac + dexMod;
@@ -125,7 +146,8 @@ export const calculateArmorClass = (armorList: ArmorInfo[] = [], dexMod: number)
   }
 
   const shieldAc = shield ? (shield.ac || 2) : 0;
-  return baseAc + shieldAc;
+  const bonus = extra?.acBonus || 0;
+  return baseAc + shieldAc + bonus;
 };
 
 const CharacterContext = createContext<CharacterContextType | undefined>(undefined);
@@ -207,16 +229,12 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [currentSaveFilename]);
 
-  // Synchronize initiative dynamically with Dexterity modifier, Alert feat, and custom bonus
+  // Synchronize initiative dynamically with Dexterity modifier and custom bonus
   useEffect(() => {
     const dexScore = character.abilities?.dex?.score ?? 10;
     const dexMod = Math.floor((dexScore - 10) / 2);
-    const hasAlert = (character.features || []).some(
-      (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
-    );
-    const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
     const customBonus = character.initiativeBonus || 0;
-    const expectedInit = dexMod + alertBonus + customBonus;
+    const expectedInit = dexMod + customBonus;
 
     if (character.initiative !== expectedInit) {
       setCharacter((prev) => ({
@@ -226,10 +244,48 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [
     character.abilities?.dex?.score,
-    character.proficiencyBonus,
-    character.features,
     character.initiativeBonus,
     character.initiative,
+  ]);
+
+  // Synchronize passives dynamically with skills and custom bonuses
+  useEffect(() => {
+    const perceptionBonus = character.passives?.perceptionBonus || 0;
+    const insightBonus = character.passives?.insightBonus || 0;
+    const investigationBonus = character.passives?.investigationBonus || 0;
+
+    const expectedPerception = 10 + getSkillBonus('perception') + perceptionBonus;
+    const expectedInsight = 10 + getSkillBonus('insight') + insightBonus;
+    const expectedInvestigation = 10 + getSkillBonus('investigation') + investigationBonus;
+
+    if (
+      character.passives?.perception !== expectedPerception ||
+      character.passives?.insight !== expectedInsight ||
+      character.passives?.investigation !== expectedInvestigation
+    ) {
+      setCharacter((prev) => ({
+        ...prev,
+        passives: {
+          ...prev.passives,
+          perception: expectedPerception,
+          insight: expectedInsight,
+          investigation: expectedInvestigation,
+        },
+      }));
+    }
+  }, [
+    character.skills?.perception?.prof,
+    character.skills?.insight?.prof,
+    character.skills?.investigation?.prof,
+    character.abilities?.wis?.score,
+    character.abilities?.int?.score,
+    character.proficiencyBonus,
+    character.passives?.perceptionBonus,
+    character.passives?.insightBonus,
+    character.passives?.investigationBonus,
+    character.passives?.perception,
+    character.passives?.insight,
+    character.passives?.investigation,
   ]);
 
   // Ensure multiclass Hit Dice pools are always present and synchronized with classes
@@ -390,7 +446,9 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const getSaveBonus = (key: AbilityKey): number => {
     const mod = getAbilityMod(key);
     const isProf = character.abilities[key]?.saveProf ?? false;
-    return mod + (isProf ? character.proficiencyBonus : 0);
+    const globalBonus = character.globalSaveBonus || 0;
+    const statBonus = character.saveBonuses?.[key] || 0;
+    return mod + (isProf ? character.proficiencyBonus : 0) + globalBonus + statBonus;
   };
 
   const getSkillBonus = (skillKey: string): number => {
@@ -414,11 +472,17 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       };
       const dexScore = key === 'dex' ? newScore : (prev.abilities.dex?.score ?? 10);
       const dexMod = Math.floor((dexScore - 10) / 2);
-      const newAc = calculateArmorClass(prev.armorWorn, dexMod);
-      const hasAlert = (prev.features || []).some(
-        (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
-      );
-      const alertBonus = hasAlert ? (prev.proficiencyBonus || 2) : 0;
+      const conScore = key === 'con' ? newScore : (prev.abilities.con?.score ?? 10);
+      const conMod = Math.floor((conScore - 10) / 2);
+      const wisScore = key === 'wis' ? newScore : (prev.abilities.wis?.score ?? 10);
+      const wisMod = Math.floor((wisScore - 10) / 2);
+      const newAc = calculateArmorClass(prev.armorWorn, dexMod, {
+        conMod,
+        wisMod,
+        unarmoredFormula: prev.unarmoredFormula,
+        customBaseAc: prev.customBaseAc,
+        acBonus: prev.acBonus,
+      });
       const customBonus = prev.initiativeBonus || 0;
 
       return {
@@ -427,7 +491,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         baseStatsLocked: false,
         abilities: updatedAbilities,
         armorClass: newAc,
-        initiative: dexMod + alertBonus + customBonus,
+        initiative: dexMod + customBonus,
       };
     });
   };
@@ -511,11 +575,10 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }));
   };
 
-  const setWeaponAbility = (id: string, ability: 'dex' | 'str') => {
+  const setWeaponAbility = (id: string, ability: AbilityKey) => {
     updateCharacter((prev) => {
-      const dexMod = Math.floor(((prev.abilities.dex?.score ?? 10) - 10) / 2);
-      const strMod = Math.floor(((prev.abilities.str?.score ?? 10) - 10) / 2);
-      const mod = ability === 'dex' ? dexMod : strMod;
+      const score = prev.abilities[ability]?.score ?? 10;
+      const mod = Math.floor((score - 10) / 2);
       const hitBonus = mod + prev.proficiencyBonus;
       const toHitString = hitBonus >= 0 ? `+${hitBonus}` : `${hitBonus}`;
 
@@ -793,8 +856,10 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const spellStat = (prev.spellcasting.stat.toLowerCase() as AbilityKey) || 'wis';
     const spellStatScore = prev.abilities[spellStat]?.score ?? 10;
     const spellStatMod = Math.floor((spellStatScore - 10) / 2);
-    const saveDC = 8 + profBonus + spellStatMod;
-    const attackMod = profBonus + spellStatMod;
+    const dcBonus = prev.spellcasting?.dcBonus || 0;
+    const attackBonusMod = prev.spellcasting?.attackBonusMod || 0;
+    const saveDC = 8 + profBonus + spellStatMod + dcBonus;
+    const attackMod = profBonus + spellStatMod + attackBonusMod;
 
     return {
       ...prev,
@@ -911,8 +976,10 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Spellcasting metrics
   const spellAbilityKey = (character.spellcasting.stat.toLowerCase() as AbilityKey) || 'wis';
   const spellMod = getAbilityMod(spellAbilityKey);
-  const saveDC = 8 + character.proficiencyBonus + spellMod;
-  const attackBonus = character.proficiencyBonus + spellMod;
+  const dcBonus = character.spellcasting?.dcBonus || 0;
+  const attackBonusMod = character.spellcasting?.attackBonusMod || 0;
+  const saveDC = 8 + character.proficiencyBonus + spellMod + dcBonus;
+  const attackBonus = character.proficiencyBonus + spellMod + attackBonusMod;
 
   const setSpellcastingStat = (stat: string) => {
     updateCharacter((prev) => {
@@ -920,8 +987,10 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const spellAbilityKey = (normStat.toLowerCase() as AbilityKey) || 'int';
       const spellStatScore = prev.abilities[spellAbilityKey]?.score ?? 10;
       const spellStatMod = Math.floor((spellStatScore - 10) / 2);
-      const saveDC = 8 + prev.proficiencyBonus + spellStatMod;
-      const attackMod = prev.proficiencyBonus + spellStatMod;
+      const dcBonus = prev.spellcasting?.dcBonus || 0;
+      const attackBonusMod = prev.spellcasting?.attackBonusMod || 0;
+      const saveDC = 8 + prev.proficiencyBonus + spellStatMod + dcBonus;
+      const attackMod = prev.proficiencyBonus + spellStatMod + attackBonusMod;
 
       return {
         ...prev,

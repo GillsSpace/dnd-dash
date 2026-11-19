@@ -6,6 +6,7 @@ import { Tooltip } from '../common/Tooltip';
 import { ResourceTooltipCard } from '../common/TooltipContent';
 import { ResourceModal } from './ResourceModal';
 import { ClassModal } from './ClassModal';
+import { SavingThrowModal } from '../modals/SavingThrowModal';
 
 interface SpeedInputProps {
   value: number;
@@ -81,6 +82,9 @@ export const CoreInfoSection: React.FC = () => {
   // Resource Modal state
   const [isResourceModalOpen, setIsResourceModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<ResourceTracker | null>(null);
+
+  // Saving Throw Modal state
+  const [isSavingThrowModalOpen, setIsSavingThrowModalOpen] = useState(false);
 
   const conMod = character.abilities.con ? Math.floor((character.abilities.con.score - 10) / 2) : 0;
 
@@ -190,8 +194,21 @@ export const CoreInfoSection: React.FC = () => {
 
           {/* Saving Throws Table (Stacked directly under Ability Scores) */}
           <div className="border border-stone-400 bg-white overflow-hidden shadow-2xs">
-            <div className="bg-[#1f4e78] text-white font-bold h-7 shrink-0 text-[11px] flex items-center justify-center px-2">
-              SAVING THROWS
+            <div className="bg-[#1f4e78] text-white font-bold h-7 shrink-0 text-[11px] flex items-center justify-between px-2">
+              <span className="flex-1 text-center pl-4">SAVING THROWS</span>
+              <button
+                type="button"
+                onClick={() => setIsSavingThrowModalOpen(true)}
+                className={`p-1 rounded transition-colors ${
+                  (character.globalSaveBonus || character.globalSaveNote || Object.keys(character.saveBonuses || {}).length > 0 || Object.keys(character.saveNotes || {}).length > 0)
+                    ? 'hover:bg-white/20 text-amber-300 hover:text-white'
+                    : 'hover:bg-white/20 text-white/80 hover:text-white'
+                }`}
+                title="Edit saving throw modifiers & notes"
+                aria-label="Edit Saving Throws"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
             </div>
             <table className="w-full text-center border-collapse">
               <thead>
@@ -205,6 +222,7 @@ export const CoreInfoSection: React.FC = () => {
                 {ABILITIES.map(({ key, label }) => {
                   const saveBonus = getSaveBonus(key);
                   const isProf = character.abilities[key]?.saveProf ?? false;
+                  const hasNote = character.saveNotes?.[key] || character.globalSaveNote;
 
                   return (
                     <tr key={key} className="border-b border-stone-300 last:border-b-0 hover:bg-stone-50">
@@ -212,7 +230,33 @@ export const CoreInfoSection: React.FC = () => {
                         {label}
                       </td>
                       <td className={`font-mono font-bold text-xs ${isProf ? 'text-[#1f4e78]' : 'text-stone-800'}`}>
-                        {saveBonus >= 0 ? `+${saveBonus}` : saveBonus}
+                        {hasNote ? (
+                          <Tooltip
+                            content={
+                              <div className="space-y-1">
+                                <p className="font-fantasy font-bold text-amber-300">{label} Saving Throw</p>
+                                {character.saveNotes?.[key] && (
+                                  <p className="text-xs text-slate-200 whitespace-pre-wrap">{character.saveNotes[key]}</p>
+                                )}
+                                {character.globalSaveNote && (
+                                  <p className="text-[11px] text-amber-200 whitespace-pre-wrap">Global: {character.globalSaveNote}</p>
+                                )}
+                                <p className="text-[10px] text-slate-400 font-mono">
+                                  Mod ({getAbilityMod(key) >= 0 ? `+${getAbilityMod(key)}` : getAbilityMod(key)})
+                                  {isProf && ` + Prof (+${character.proficiencyBonus})`}
+                                  {character.globalSaveBonus ? ` + Global (${character.globalSaveBonus >= 0 ? `+${character.globalSaveBonus}` : character.globalSaveBonus})` : ''}
+                                  {character.saveBonuses?.[key] ? ` + Extra (${character.saveBonuses[key]! >= 0 ? `+${character.saveBonuses[key]}` : character.saveBonuses[key]})` : ''}
+                                </p>
+                              </div>
+                            }
+                          >
+                            <span className="cursor-help hover:text-amber-700 underline decoration-dotted">
+                              {saveBonus >= 0 ? `+${saveBonus}` : saveBonus}
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <span>{saveBonus >= 0 ? `+${saveBonus}` : saveBonus}</span>
+                        )}
                       </td>
                       <td className="w-10">
                         <button
@@ -556,6 +600,12 @@ export const CoreInfoSection: React.FC = () => {
         onAddClass={addClass}
         conMod={conMod}
         isFirstClass={character.classes.length === 0}
+      />
+
+      {/* Saving Throw Modal for Global & Specific Modifiers */}
+      <SavingThrowModal
+        isOpen={isSavingThrowModalOpen}
+        onClose={() => setIsSavingThrowModalOpen(false)}
       />
     </div>
   );

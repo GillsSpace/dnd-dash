@@ -41,7 +41,7 @@ export interface Weapon {
   mastery?: string;
   masteryActive?: boolean;
   notes?: string;
-  ability?: 'dex' | 'str';
+  ability?: AbilityKey;
   baseDamage?: string;
 }
 
@@ -190,6 +190,10 @@ export interface CharacterData {
     failures: number;
   };
   armorClass: number;
+  acBonus?: number;
+  unarmoredFormula?: 'standard' | 'barbarian' | 'monk' | 'mageArmor' | 'custom';
+  customBaseAc?: number;
+  acNote?: string;
   armorWorn: ArmorInfo[];
   shield: boolean;
   speed: {
@@ -203,11 +207,21 @@ export interface CharacterData {
   initiative: number;
   initiativeBonus?: number;
   initiativeNote?: string;
+  globalSaveBonus?: number;
+  globalSaveNote?: string;
+  saveBonuses?: Partial<Record<AbilityKey, number>>;
+  saveNotes?: Partial<Record<AbilityKey, string>>;
   proficiencyBonus: number;
   passives: {
     perception: number;
     insight: number;
     investigation: number;
+    perceptionBonus?: number;
+    perceptionNote?: string;
+    insightBonus?: number;
+    insightNote?: string;
+    investigationBonus?: number;
+    investigationNote?: string;
   };
   skills: Record<string, SkillData>;
   weapons: Weapon[];
@@ -222,6 +236,9 @@ export interface CharacterData {
     stat: AbilityKey | string;
     saveDC: number;
     attackMod: number;
+    dcBonus?: number;
+    attackBonusMod?: number;
+    bonusNote?: string;
     slots: Record<string, SpellSlotLevel>;
     preparedSpellNames: string[];
     spellNotes?: Record<string, string>;

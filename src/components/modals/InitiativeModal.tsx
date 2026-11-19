@@ -6,14 +6,12 @@ interface InitiativeModalProps {
   isOpen: boolean;
   onClose: () => void;
   dexMod: number;
-  alertBonus: number;
 }
 
 export const InitiativeModal: React.FC<InitiativeModalProps> = ({
   isOpen,
   onClose,
   dexMod,
-  alertBonus,
 }) => {
   const { character, updateCharacter } = useCharacter();
 
@@ -37,7 +35,7 @@ export const InitiativeModal: React.FC<InitiativeModalProps> = ({
     return isNaN(num) ? 0 : num;
   })();
 
-  const totalCalculated = dexMod + alertBonus + parsedBonus;
+  const totalCalculated = dexMod + parsedBonus;
 
   const handleSave = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -66,7 +64,7 @@ export const InitiativeModal: React.FC<InitiativeModalProps> = ({
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-300" />
             <h2 className="font-fantasy font-bold tracking-wide text-sm">
-              INITIATIVE MODIFIER & NOTE
+              INITIATIVE MODIFIER &amp; NOTE
             </h2>
           </div>
           <button
@@ -88,7 +86,6 @@ export const InitiativeModal: React.FC<InitiativeModalProps> = ({
               </span>
               <div className="text-[11px] text-stone-600 mt-0.5 font-mono">
                 DEX ({dexMod >= 0 ? `+${dexMod}` : dexMod})
-                {alertBonus > 0 && ` + Alert (+${alertBonus})`}
                 {parsedBonus !== 0 && ` + Extra (${parsedBonus >= 0 ? `+${parsedBonus}` : parsedBonus})`}
               </div>
             </div>

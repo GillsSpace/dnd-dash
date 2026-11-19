@@ -7,12 +7,8 @@ export const CombatVitals: React.FC = () => {
   const { character, updateCharacter, getAbilityMod } = useCharacter();
   const dexMod = getAbilityMod('dex');
 
-  const hasAlert = (character.features || []).some(
-    (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
-  );
-  const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
   const customBonus = character.initiativeBonus || 0;
-  const effectiveInitiative = dexMod + alertBonus + customBonus;
+  const effectiveInitiative = dexMod + customBonus;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -22,8 +18,13 @@ export const CombatVitals: React.FC = () => {
           <div className="space-y-1">
             <p className="font-fantasy font-bold text-amber-300">Armor Class (AC): {character.armorClass}</p>
             <p className="text-[11px] text-slate-300">
-              {character.armorWorn?.[0]?.name || 'Breastplate'}: Base AC 14 + Dex modifier (max +2) = 16.
+              {character.armorWorn?.[0]?.name || 'Breastplate'}: Base AC {character.armorClass}.
             </p>
+            {character.acNote && (
+              <p className="text-xs text-amber-200 pt-1 border-t border-slate-700">
+                Note: {character.acNote}
+              </p>
+            )}
             <p className="text-[10px] text-slate-400">Shield: None equipped</p>
           </div>
         }
@@ -48,7 +49,6 @@ export const CombatVitals: React.FC = () => {
             <p className="font-fantasy font-bold text-amber-300">Initiative: {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}</p>
             <p className="text-[11px] text-slate-300">
               Calculated from your Dexterity modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
-              {hasAlert ? ` + Alert feat (+${alertBonus})` : ''}
               {customBonus !== 0 ? ` + Custom modifier (${customBonus >= 0 ? `+${customBonus}` : customBonus})` : ''}.
             </p>
             {character.initiativeNote && (

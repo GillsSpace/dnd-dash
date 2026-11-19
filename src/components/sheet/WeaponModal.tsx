@@ -6,6 +6,8 @@ import {
   WEAPON_MASTERY_DESCRIPTIONS,
 } from '../../data/dnd2024Weapons';
 
+import { AbilityKey } from '../../types/character';
+
 const WEAPON_MASTERIES = ['None', 'Nick', 'Vex', 'Graze', 'Push', 'Slow', 'Topple', 'Sap', 'Cleave'];
 const DAMAGE_TYPES = ['Piercing', 'Slashing', 'Bludgeoning', 'Force', 'Radiant', 'Necrotic', 'Fire', 'Cold'];
 
@@ -26,7 +28,7 @@ export const WeaponModal: React.FC<{ isOpen: boolean; onClose: () => void }> = (
   const [properties, setProperties] = useState('Finesse');
   const [notes, setNotes] = useState('');
 
-  const [selectedAbility, setSelectedAbility] = useState<'dex' | 'str'>('str');
+  const [selectedAbility, setSelectedAbility] = useState<AbilityKey>('str');
   const [baseDamage, setBaseDamage] = useState('1d8');
 
   if (!isOpen) return null;
@@ -44,8 +46,8 @@ export const WeaponModal: React.FC<{ isOpen: boolean; onClose: () => void }> = (
     const isRanged = preset.category.includes('Ranged');
     
     // Choose appropriate ability modifier
-    const chosenAbility: 'dex' | 'str' = isFinesse ? (dexMod >= strMod ? 'dex' : 'str') : isRanged ? 'dex' : 'str';
-    const mod = chosenAbility === 'dex' ? dexMod : strMod;
+    const chosenAbility: AbilityKey = isFinesse ? (dexMod >= strMod ? 'dex' : 'str') : isRanged ? 'dex' : 'str';
+    const mod = getAbilityMod(chosenAbility);
     const hitBonus = mod + character.proficiencyBonus;
     const toHitString = hitBonus >= 0 ? `+${hitBonus}` : `${hitBonus}`;
 
@@ -272,6 +274,36 @@ export const WeaponModal: React.FC<{ isOpen: boolean; onClose: () => void }> = (
                 className="w-full border border-stone-300 rounded px-2.5 py-1.5 focus:border-[#1f4e78] focus:outline-none"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-stone-700 mb-1">Ability Modifier Scaling</label>
+            <select
+              value={selectedAbility}
+              onChange={(e) => {
+                const newAbility = e.target.value as AbilityKey;
+                setSelectedAbility(newAbility);
+                const mod = getAbilityMod(newAbility);
+                const hitBonus = mod + character.proficiencyBonus;
+                setToHit(hitBonus >= 0 ? `+${hitBonus}` : `${hitBonus}`);
+                const base = baseDamage || '1d8';
+                if (base === '1') {
+                  setDamage(`${1 + mod}`);
+                } else if (mod !== 0) {
+                  setDamage(`${base}${mod > 0 ? `+${mod}` : `${mod}`}`);
+                } else {
+                  setDamage(base);
+                }
+              }}
+              className="w-full border border-stone-300 rounded px-2.5 py-1.5 focus:border-[#1f4e78] focus:outline-none font-medium bg-stone-50"
+            >
+              <option value="str">Strength (STR - standard melee)</option>
+              <option value="dex">Dexterity (DEX - finesse / ranged)</option>
+              <option value="con">Constitution (CON - e.g. breath/bite)</option>
+              <option value="int">Intelligence (INT - Battle Smith / Armorer)</option>
+              <option value="wis">Wisdom (WIS - Astral Self / Shillelagh)</option>
+              <option value="cha">Charisma (CHA - Hexblade / Pact of Blade)</option>
+            </select>
           </div>
 
           {/* Mastery preview banner */}

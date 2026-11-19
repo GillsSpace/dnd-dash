@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { Spell } from '../../types/spell';
 import { AbilityKey } from '../../types/character';
-import { Wand2, Plus, BookOpen, X, Lock, Unlock } from 'lucide-react';
+import { Wand2, Plus, BookOpen, X, Lock, Unlock, Edit2 } from 'lucide-react';
 import { Tooltip } from '../common/Tooltip';
 import { SpellTooltipCard } from '../common/TooltipContent';
 import { calculateClassPreparedSpells } from '../../utils/spellSlotHelper';
+import { SpellBonusModal } from '../modals/SpellBonusModal';
 
 const SCHOOL_COLORS: Record<string, string> = {
   Abjur: 'text-blue-800 border-blue-400 bg-blue-50',
@@ -44,6 +45,8 @@ export const SpellSheetView: React.FC<{
     saveDC,
     attackBonus,
   } = useCharacter();
+
+  const [isSpellBonusModalOpen, setIsSpellBonusModalOpen] = useState(false);
 
   // Find all prepared spells from masterSpells list
   const preparedSpells: Spell[] = character.spellcasting.preparedSpellNames
@@ -114,27 +117,97 @@ export const SpellSheetView: React.FC<{
 
           {/* Spell Save DC Card */}
           <div className="bg-white border border-stone-400 p-2.5 rounded shadow-xs flex flex-col justify-between">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">
-              Spell Save DC
-            </span>
-            <span className="font-mono text-2xl font-extrabold text-[#7b1113]">
-              {saveDC}
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-stone-500 uppercase block">
+                Spell Save DC
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsSpellBonusModalOpen(true)}
+                className={`p-0.5 rounded transition-colors ${
+                  (character.spellcasting?.dcBonus || character.spellcasting?.attackBonusMod || character.spellcasting?.bonusNote)
+                    ? 'text-[#1f4e78] bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                }`}
+                title="Edit Spell Save DC and Attack modifier & note"
+                aria-label="Edit Spell Save DC"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div>
+              {character.spellcasting?.bonusNote ? (
+                <Tooltip
+                  content={
+                    <div className="space-y-1">
+                      <p className="font-fantasy font-bold text-amber-300">Spell Focus Note</p>
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap">{character.spellcasting.bonusNote}</p>
+                    </div>
+                  }
+                >
+                  <span className="font-mono text-2xl font-extrabold text-[#7b1113] cursor-help underline decoration-dotted">
+                    {saveDC}
+                  </span>
+                </Tooltip>
+              ) : (
+                <span className="font-mono text-2xl font-extrabold text-[#7b1113]">
+                  {saveDC}
+                </span>
+              )}
+            </div>
+
             <span className="text-[10px] text-stone-500 block">
               8 + Prof (+{character.proficiencyBonus}) + {currentStatInfo.abbr} ({formattedMod})
+              {character.spellcasting?.dcBonus ? ` + Focus (+${character.spellcasting.dcBonus})` : ''}
             </span>
           </div>
 
           {/* Spell Attack Bonus Card */}
           <div className="bg-white border border-stone-400 p-2.5 rounded shadow-xs flex flex-col justify-between">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">
-              Spell Attack Bonus
-            </span>
-            <span className="font-mono text-2xl font-extrabold text-[#276749]">
-              {attackBonus >= 0 ? `+${attackBonus}` : attackBonus}
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-stone-500 uppercase block">
+                Spell Attack Bonus
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsSpellBonusModalOpen(true)}
+                className={`p-0.5 rounded transition-colors ${
+                  (character.spellcasting?.dcBonus || character.spellcasting?.attackBonusMod || character.spellcasting?.bonusNote)
+                    ? 'text-[#1f4e78] bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                }`}
+                title="Edit Spell Save DC and Attack modifier & note"
+                aria-label="Edit Spell Attack Bonus"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div>
+              {character.spellcasting?.bonusNote ? (
+                <Tooltip
+                  content={
+                    <div className="space-y-1">
+                      <p className="font-fantasy font-bold text-amber-300">Spell Focus Note</p>
+                      <p className="text-xs text-slate-200 whitespace-pre-wrap">{character.spellcasting.bonusNote}</p>
+                    </div>
+                  }
+                >
+                  <span className="font-mono text-2xl font-extrabold text-[#276749] cursor-help underline decoration-dotted">
+                    {attackBonus >= 0 ? `+${attackBonus}` : attackBonus}
+                  </span>
+                </Tooltip>
+              ) : (
+                <span className="font-mono text-2xl font-extrabold text-[#276749]">
+                  {attackBonus >= 0 ? `+${attackBonus}` : attackBonus}
+                </span>
+              )}
+            </div>
+
             <span className="text-[10px] text-stone-500 block">
               Prof (+{character.proficiencyBonus}) + {currentStatInfo.abbr} ({formattedMod})
+              {character.spellcasting?.attackBonusMod ? ` + Focus (+${character.spellcasting.attackBonusMod})` : ''}
             </span>
           </div>
         </div>
@@ -442,6 +515,12 @@ export const SpellSheetView: React.FC<{
           );
         })}
       </div>
+
+      {/* Spell Bonus & Focus Modal */}
+      <SpellBonusModal
+        isOpen={isSpellBonusModalOpen}
+        onClose={() => setIsSpellBonusModalOpen(false)}
+      />
     </div>
   );
 };

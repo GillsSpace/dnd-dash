@@ -5,6 +5,7 @@ import { Tooltip } from '../common/Tooltip';
 import { WeaponTooltipCard } from '../common/TooltipContent';
 import { WeaponModal } from './WeaponModal';
 import { ArmorModal } from './ArmorModal';
+import { AbilityKey } from '../../types/character';
 
 export const WeaponsArmorSection: React.FC = () => {
   const {
@@ -130,34 +131,21 @@ export const WeaponsArmorSection: React.FC = () => {
                           </Tooltip>
                         </td>
 
-                        {/* Ability Selector (DEX vs STR Mod) */}
-                        <td className="py-1 px-1">
-                          <div className="inline-flex rounded border border-stone-300 overflow-hidden text-[9px] font-bold shadow-2xs">
-                            <button
-                              type="button"
-                              onClick={() => setWeaponAbility(w.id, 'str')}
-                              className={`px-2 py-0.5 transition-colors ${
-                                currentAbility === 'str'
-                                  ? 'bg-[#1f4e78] text-white'
-                                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                              }`}
-                              title="Scale with Strength modifier"
-                            >
-                              STR
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setWeaponAbility(w.id, 'dex')}
-                              className={`px-2 py-0.5 transition-colors ${
-                                currentAbility === 'dex'
-                                  ? 'bg-[#1f4e78] text-white'
-                                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                              }`}
-                              title="Scale with Dexterity modifier"
-                            >
-                              DEX
-                            </button>
-                          </div>
+                        {/* Ability Selector (STR, DEX, CON, INT, WIS, CHA) */}
+                        <td className="py-1 px-1 text-center">
+                          <select
+                            value={currentAbility}
+                            onChange={(e) => setWeaponAbility(w.id, e.target.value as AbilityKey)}
+                            className="bg-[#1f4e78] text-white font-mono font-bold text-[9px] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer shadow-2xs border border-[#163a5a]"
+                            title="Select which ability score modifier this weapon scales with (e.g. Hexblade CHA, Artificer INT, Finesse DEX)"
+                          >
+                            <option value="str" className="bg-white text-stone-900 font-bold">STR</option>
+                            <option value="dex" className="bg-white text-stone-900 font-bold">DEX</option>
+                            <option value="con" className="bg-white text-stone-900 font-bold">CON</option>
+                            <option value="int" className="bg-white text-stone-900 font-bold">INT</option>
+                            <option value="wis" className="bg-white text-stone-900 font-bold">WIS</option>
+                            <option value="cha" className="bg-white text-stone-900 font-bold">CHA</option>
+                          </select>
                         </td>
 
                         {/* To-Hit Bonus */}

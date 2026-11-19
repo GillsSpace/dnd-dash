@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useCharacter } from '../../context/CharacterContext';
+import { useCharacter, calculateArmorClass } from '../../context/CharacterContext';
 import { Tooltip } from '../common/Tooltip';
 import { Edit2 } from 'lucide-react';
 import { InitiativeModal } from '../modals/InitiativeModal';
+import { AcModal } from '../modals/AcModal';
 
 export const CombatSection: React.FC = () => {
   const {
@@ -17,6 +18,7 @@ export const CombatSection: React.FC = () => {
 
   const [customHpVal, setCustomHpVal] = useState('');
   const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
+  const [isAcModalOpen, setIsAcModalOpen] = useState(false);
 
   const toggleDeathSave = (type: 'successes' | 'failures', index: number) => {
     updateCharacter((prev) => {
@@ -35,6 +37,7 @@ export const CombatSection: React.FC = () => {
   // Dynamic Armor & AC Calculations
   const dexMod = getAbilityMod('dex');
   const conMod = getAbilityMod('con');
+  const wisMod = getAbilityMod('wis');
   const conModFormatted = conMod >= 0 ? `+${conMod}` : `${conMod}`;
   const equippedArmor = (character.armorWorn || []).filter((a) => a.equipped !== false);
   const bodyArmor = equippedArmor.find((a) =>
@@ -55,14 +58,14 @@ export const CombatSection: React.FC = () => {
 
   const baseArmorAc = bodyArmor ? bodyArmor.ac : 10;
   const shieldAc = shieldItem ? (shieldItem.ac || 2) : 0;
-  const computedTotalAc = baseArmorAc + dexApplied + shieldAc;
+  const computedTotalAc = calculateArmorClass(character.armorWorn, dexMod, {
+    conMod,
+    wisMod,
+    unarmoredFormula: character.unarmoredFormula,
+    customBaseAc: character.customBaseAc,
+    acBonus: character.acBonus,
+  });
   const effectiveAc = character.armorClass || computedTotalAc;
-
-  // Initiative Calculations
-  const hasAlert = (character.features || []).some(
-    (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
-  );
-  const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
 
   return (
     <div className="h-full flex flex-col space-y-1">
@@ -72,10 +75,10 @@ export const CombatSection: React.FC = () => {
       </div>
 
       <div className="bg-[#f6efe6] p-2 border border-stone-300 flex-1 flex flex-col justify-between space-y-2 text-xs">
-        {/* Top Combat Row: HP, AC, Initiative */}
+        {/* Top Combat Row: HP, AC, Initiative (Equal Widths) */}
         <div className="grid grid-cols-12 gap-2">
           {/* Hit Points Box */}
-          <div className="col-span-12 sm:col-span-5 border border-stone-400 bg-white flex flex-col justify-between">
+          <div className="col-span-12 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between">
             <div className="bg-[#1f4e78] text-white font-bold text-center py-0.5 text-[11px]">
               Hit Points
             </div>
@@ -156,49 +159,84 @@ export const CombatSection: React.FC = () => {
           </div>
 
           {/* AC Box */}
-          <div className="col-span-6 sm:col-span-3 border border-stone-400 bg-white flex flex-col justify-between text-center">
-            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide">
+          <div className="col-span-12 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between text-center">
+            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide text-center">
               AC
             </div>
             <div className="p-2 flex flex-col items-center justify-center flex-1">
-              <div
-                className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm"
-                title={`Computed AC: ${computedTotalAc}`}
-              >
-                {effectiveAc}
+              <div className="flex items-center justify-center gap-1.5 relative">
+                {character.acNote ? (
+                  <Tooltip
+                    content={
+                      <div className="space-y-1">
+                        <p className="font-fantasy font-bold text-amber-300">Armor Class Note</p>
+                        <p className="text-xs text-slate-200 whitespace-pre-wrap">{character.acNote}</p>
+                      </div>
+                    }
+                  >
+                    <div
+                      className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm cursor-help hover:border-amber-600 transition-colors"
+                      title={character.acNote}
+                    >
+                      {effectiveAc}
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <div
+                    className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm"
+                    title={`Computed AC: ${computedTotalAc}`}
+                  >
+                    {effectiveAc}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsAcModalOpen(true)}
+                  className={`p-1 rounded transition-colors ${
+                    character.acBonus || character.acNote || (character.unarmoredFormula && character.unarmoredFormula !== 'standard')
+                      ? 'text-[#1f4e78] bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                      : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                  }`}
+                  title="Edit AC formula, modifier & note"
+                  aria-label="Edit Armor Class"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
               </div>
+
               <span className="text-[10px] text-stone-500 mt-1 font-mono text-center">
-                = {baseArmorAc} ({bodyArmor ? bodyArmor.name : 'Unarmored'}) + {dexApplied >= 0 ? `+${dexApplied}` : dexApplied} (Dex)
+                {bodyArmor ? (
+                  `= ${baseArmorAc} (${bodyArmor.name}) + ${dexApplied >= 0 ? `+${dexApplied}` : dexApplied} (Dex)`
+                ) : (
+                  `= ${character.unarmoredFormula === 'barbarian' ? '10+Dex+Con' : character.unarmoredFormula === 'monk' ? '10+Dex+Wis' : character.unarmoredFormula === 'mageArmor' ? '13+Dex' : '10+Dex'}`
+                )}
                 {shieldItem ? ` + ${shieldAc} (Shield)` : ''}
+                {character.acBonus ? ` + ${character.acBonus > 0 ? `+${character.acBonus}` : character.acBonus} (Mod)` : ''}
               </span>
             </div>
-            <div className="bg-stone-100 border-t border-stone-300 text-[10px] text-stone-600 py-0.5 px-1 truncate">
-              {shieldItem ? `${shieldItem.name} (+${shieldAc} AC)` : 'No shield'}
+            <div className="bg-stone-100 border-t border-stone-300 text-[10px] text-stone-600 py-0.5 px-1 truncate text-center">
+              {character.acNote ? (
+                <span className="text-amber-800 font-semibold truncate block" title={character.acNote}>
+                  📝 {character.acNote}
+                </span>
+              ) : shieldItem ? (
+                `${shieldItem.name} (+${shieldAc} AC)`
+              ) : (
+                'No shield'
+              )}
             </div>
           </div>
 
-          {/* Initiative Box (Moved from Core Info to right of AC) */}
-          <div className="col-span-6 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between text-center relative group">
-            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide flex items-center justify-between px-2">
-              <span className="flex-1 text-center">INITIATIVE</span>
-              <button
-                type="button"
-                onClick={() => setIsInitiativeModalOpen(true)}
-                className="p-0.5 hover:bg-white/20 rounded text-white/80 hover:text-white transition-colors"
-                title="Edit Initiative modifier & note"
-                aria-label="Edit Initiative"
-              >
-                <Edit2 className="w-3 h-3" />
-              </button>
+          {/* Initiative Box */}
+          <div className="col-span-12 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between text-center relative group">
+            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide text-center">
+              INITIATIVE
             </div>
             <div className="p-2 flex flex-col items-center justify-center flex-1">
               {(() => {
-                const hasAlert = (character.features || []).some(
-                  (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
-                );
-                const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
                 const customBonus = character.initiativeBonus || 0;
-                const effectiveInitiative = dexMod + alertBonus + customBonus;
+                const effectiveInitiative = dexMod + customBonus;
                 return (
                   <>
                     <div className="flex items-center justify-center gap-1.5 relative">
@@ -241,7 +279,6 @@ export const CombatSection: React.FC = () => {
 
                     <span className="text-[10px] text-stone-500 mt-1 font-mono text-center">
                       = DEX Modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
-                      {hasAlert ? ` + Alert (+${alertBonus})` : ''}
                       {customBonus !== 0 ? ` + Mod (${customBonus >= 0 ? `+${customBonus}` : customBonus})` : ''}
                     </span>
                   </>
@@ -455,12 +492,20 @@ export const CombatSection: React.FC = () => {
         </div>
       </div>
 
+      {/* Armor Class Modal */}
+      <AcModal
+        isOpen={isAcModalOpen}
+        onClose={() => setIsAcModalOpen(false)}
+        dexMod={dexMod}
+        conMod={conMod}
+        wisMod={wisMod}
+      />
+
       {/* Initiative Modifier & Note Modal */}
       <InitiativeModal
         isOpen={isInitiativeModalOpen}
         onClose={() => setIsInitiativeModalOpen(false)}
         dexMod={dexMod}
-        alertBonus={alertBonus}
       />
     </div>
   );

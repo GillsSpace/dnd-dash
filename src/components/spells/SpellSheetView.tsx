@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { Spell } from '../../types/spell';
 import { AbilityKey } from '../../types/character';
-import { Wand2, Plus, BookOpen, X, Lock, Unlock, Edit2 } from 'lucide-react';
+import { Wand2, Plus, BookOpen, X, Lock, Unlock, Edit2, ChevronRight } from 'lucide-react';
 import { Tooltip } from '../common/Tooltip';
 import { SpellTooltipCard } from '../common/TooltipContent';
 import { calculateClassPreparedSpells } from '../../utils/spellSlotHelper';
+import { formatCastingTime } from '../../utils/formatters';
 import { SpellBonusModal } from '../modals/SpellBonusModal';
 
 const SCHOOL_COLORS: Record<string, string> = {
@@ -47,6 +48,19 @@ export const SpellSheetView: React.FC<{
   } = useCharacter();
 
   const [isSpellBonusModalOpen, setIsSpellBonusModalOpen] = useState(false);
+  const [expandedSpells, setExpandedSpells] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (spellName: string) => {
+    setExpandedSpells((prev) => {
+      const next = new Set(prev);
+      if (next.has(spellName)) {
+        next.delete(spellName);
+      } else {
+        next.add(spellName);
+      }
+      return next;
+    });
+  };
 
   // Find all prepared spells from masterSpells list
   const preparedSpells: Spell[] = character.spellcasting.preparedSpellNames
@@ -362,131 +376,233 @@ export const SpellSheetView: React.FC<{
                         <th className="px-2 w-28">Duration</th>
                         <th className="px-2 w-16 text-center">Tags</th>
                         <th className="px-2 w-1/5 text-left">Notes</th>
-                        <th className="px-2 w-10 text-center"></th>
+                        <th className="px-2 w-14 text-center"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {spellsInLevel.map((spell) => {
+                        const isExpanded = expandedSpells.has(spell.name);
                         const schoolBadge =
                           SCHOOL_COLORS[spell.school] ||
                           'text-stone-700 border-stone-300 bg-stone-100';
                         const isLocked = isSpellLocked(spell.name);
 
                         return (
-                          <tr
-                            key={spell.id}
-                            className="border-b border-stone-200 last:border-b-0 hover:bg-stone-50 transition-colors"
-                          >
-                            {/* Spell Name with Lock Icon & Hover Tooltip */}
-                            <td className="px-3 py-1.5 font-bold text-stone-900">
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleSpellLock(spell.name)}
-                                  title={
-                                    isLocked
-                                      ? 'Spell is locked (cannot be removed). Click to unlock.'
-                                      : 'Lock spell to prevent removal'
-                                  }
-                                  className={`p-0.5 rounded transition-colors ${
-                                    isLocked
-                                      ? 'text-amber-700 hover:text-amber-900'
-                                      : 'text-stone-300 hover:text-stone-500'
-                                  }`}
+                          <React.Fragment key={spell.id}>
+                            <tr
+                              className={`border-b border-stone-200 hover:bg-stone-50 transition-colors ${
+                                isExpanded ? 'bg-amber-50/40' : ''
+                              }`}
+                            >
+                              {/* Spell Name with Expand Chevron & Tooltip */}
+                              <td className="px-3 py-1.5 font-bold text-stone-900">
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleExpand(spell.name)}
+                                    className="p-0.5 text-stone-400 hover:text-[#1f4e78] transition-transform duration-150 cursor-pointer"
+                                    title={
+                                      isExpanded
+                                        ? 'Collapse spell details'
+                                        : 'Expand full spell rules & upcasting'
+                                    }
+                                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                                  >
+                                    <ChevronRight
+                                      className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                                        isExpanded ? 'rotate-90 text-[#1f4e78]' : ''
+                                      }`}
+                                    />
+                                  </button>
+                                  <Tooltip maxWidth="max-w-lg" content={<SpellTooltipCard spell={spell} />}>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleExpand(spell.name)}
+                                      className="text-left cursor-pointer hover:text-[#1f4e78] underline decoration-dotted font-bold text-stone-900"
+                                    >
+                                      {spell.name}
+                                    </button>
+                                  </Tooltip>
+                                </div>
+                              </td>
+
+                              {/* School Badge */}
+                              <td className="px-2 text-center">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${schoolBadge}`}
                                 >
-                                  {isLocked ? (
-                                    <Lock className="w-3.5 h-3.5 fill-amber-700/20" />
-                                  ) : (
-                                    <Unlock className="w-3.5 h-3.5" />
+                                  {spell.school}
+                                </span>
+                              </td>
+
+                              {/* Casting Time (Truncated to 2-word limit) */}
+                              <td
+                                className="px-2 text-stone-700 font-mono text-[11px]"
+                                title={spell.castingTime}
+                              >
+                                {formatCastingTime(spell.castingTime)}
+                              </td>
+
+                              {/* Range */}
+                              <td className="px-2 text-stone-700 font-mono text-[11px]">
+                                {spell.range}
+                              </td>
+
+                              {/* Duration */}
+                              <td className="px-2 text-stone-700 font-mono text-[11px]">
+                                {spell.duration}
+                              </td>
+
+                              {/* Concentration / Ritual Tags */}
+                              <td className="px-2 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  {spell.conc && (
+                                    <span
+                                      className="px-1 py-0.2 text-[9px] font-bold rounded bg-amber-100 text-amber-900 border border-amber-300"
+                                      title="Concentration"
+                                    >
+                                      C
+                                    </span>
                                   )}
-                                </button>
-                                <Tooltip maxWidth="max-w-lg" content={<SpellTooltipCard spell={spell} />}>
-                                  <span className="cursor-help hover:text-[#1f4e78] underline decoration-dotted">
-                                    {spell.name}
-                                  </span>
-                                </Tooltip>
-                              </div>
-                            </td>
+                                  {spell.ritual && (
+                                    <span
+                                      className="px-1 py-0.2 text-[9px] font-bold rounded bg-cyan-100 text-cyan-900 border border-cyan-300"
+                                      title="Ritual"
+                                    >
+                                      R
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
 
-                            {/* School Badge */}
-                            <td className="px-2 text-center">
-                              <span
-                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${schoolBadge}`}
-                              >
-                                {spell.school}
-                              </span>
-                            </td>
+                              {/* Notes Column */}
+                              <td className="px-2 py-1 w-1/5">
+                                <input
+                                  type="text"
+                                  value={character.spellcasting.spellNotes?.[spell.name] || ''}
+                                  onChange={(e) => updateSpellNote(spell.name, e.target.value)}
+                                  placeholder="Add note..."
+                                  className="w-full bg-transparent hover:bg-stone-100 focus:bg-white border border-transparent hover:border-stone-300 focus:border-[#1f4e78] rounded px-1.5 py-0.5 text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none transition-colors"
+                                  title={`Notes for ${spell.name}`}
+                                />
+                              </td>
 
-                            {/* Casting Time */}
-                            <td className="px-2 text-stone-700 font-mono text-[11px]">
-                              {spell.castingTime}
-                            </td>
-
-                            {/* Range */}
-                            <td className="px-2 text-stone-700 font-mono text-[11px]">
-                              {spell.range}
-                            </td>
-
-                            {/* Duration */}
-                            <td className="px-2 text-stone-700 font-mono text-[11px]">
-                              {spell.duration}
-                            </td>
-
-                            {/* Concentration / Ritual Tags */}
-                            <td className="px-2 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                {spell.conc && (
-                                  <span
-                                    className="px-1 py-0.2 text-[9px] font-bold rounded bg-amber-100 text-amber-900 border border-amber-300"
-                                    title="Concentration"
+                              {/* Far Right Action Column: Lock & Remove */}
+                              <td className="px-2 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSpellLock(spell.name)}
+                                    title={
+                                      isLocked
+                                        ? 'Spell is locked (cannot be removed). Click to unlock.'
+                                        : 'Lock spell to prevent removal'
+                                    }
+                                    className={`p-0.5 rounded transition-colors cursor-pointer ${
+                                      isLocked
+                                        ? 'text-amber-700 hover:text-amber-900'
+                                        : 'text-stone-300 hover:text-stone-500'
+                                    }`}
                                   >
-                                    C
-                                  </span>
-                                )}
-                                {spell.ritual && (
-                                  <span
-                                    className="px-1 py-0.2 text-[9px] font-bold rounded bg-cyan-100 text-cyan-900 border border-cyan-300"
-                                    title="Ritual"
+                                    {isLocked ? (
+                                      <Lock className="w-3.5 h-3.5 fill-amber-700/20" />
+                                    ) : (
+                                      <Unlock className="w-3.5 h-3.5" />
+                                    )}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => !isLocked && togglePreparedSpell(spell.name)}
+                                    disabled={isLocked}
+                                    title={
+                                      isLocked
+                                        ? 'Spell is locked. Unlock to remove.'
+                                        : 'Remove from Prepared Spells'
+                                    }
+                                    className={`p-0.5 transition-colors ${
+                                      isLocked
+                                        ? 'text-stone-200 cursor-not-allowed opacity-30'
+                                        : 'text-stone-400 hover:text-red-700 cursor-pointer'
+                                    }`}
                                   >
-                                    R
-                                  </span>
-                                )}
-                              </div>
-                            </td>
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
 
-                            {/* Notes Column */}
-                            <td className="px-2 py-1 w-1/5">
-                              <input
-                                type="text"
-                                value={character.spellcasting.spellNotes?.[spell.name] || ''}
-                                onChange={(e) => updateSpellNote(spell.name, e.target.value)}
-                                placeholder="Add note..."
-                                className="w-full bg-transparent hover:bg-stone-100 focus:bg-white border border-transparent hover:border-stone-300 focus:border-[#1f4e78] rounded px-1.5 py-0.5 text-xs text-stone-800 placeholder:text-stone-300 focus:outline-none transition-colors"
-                                title={`Notes for ${spell.name}`}
-                              />
-                            </td>
+                            {/* In-Flow Accordion Drawer */}
+                            {isExpanded && (
+                              <tr className="bg-[#faf6f0] border-b border-stone-300">
+                                <td colSpan={8} className="p-3.5 space-y-2.5 text-xs text-stone-800">
+                                  {/* Meta tags bar */}
+                                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-600 pb-2 border-b border-stone-200">
+                                    <div>
+                                      <strong className="text-stone-800">Casting Time:</strong> {spell.castingTime}
+                                    </div>
+                                    <div>
+                                      <strong className="text-stone-800">Range:</strong> {spell.range}
+                                    </div>
+                                    <div>
+                                      <strong className="text-stone-800">Duration:</strong> {spell.duration}
+                                    </div>
+                                    <div>
+                                      <strong className="text-stone-800">Components:</strong> {spell.components || 'V, S'}
+                                      {spell.cost && (
+                                        <span className="text-amber-800 font-semibold ml-1">({spell.cost})</span>
+                                      )}
+                                    </div>
+                                    {spell.areaOrTargets && (
+                                      <div>
+                                        <strong className="text-stone-800">Target/Area:</strong> {spell.areaOrTargets}
+                                      </div>
+                                    )}
+                                    {spell.saveOrAttack && (
+                                      <div>
+                                        <strong className="text-stone-800">Save/Attack:</strong> {spell.saveOrAttack}
+                                      </div>
+                                    )}
+                                    {spell.source && (
+                                      <div>
+                                        <strong className="text-stone-800">Source:</strong> {spell.source}
+                                      </div>
+                                    )}
+                                  </div>
 
-                            {/* Remove from prepared */}
-                            <td className="px-2 text-center">
-                              <button
-                                type="button"
-                                onClick={() => !isLocked && togglePreparedSpell(spell.name)}
-                                disabled={isLocked}
-                                title={
-                                  isLocked
-                                    ? 'Spell is locked. Unlock to remove.'
-                                    : 'Remove from Prepared Spells'
-                                }
-                                className={`p-0.5 transition-colors ${
-                                  isLocked
-                                    ? 'text-stone-200 cursor-not-allowed opacity-30'
-                                    : 'text-stone-400 hover:text-red-700 cursor-pointer'
-                                }`}
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
+                                  {/* Full rules paragraphs */}
+                                  <div className="space-y-1.5 text-stone-700 font-sans leading-relaxed">
+                                    {(spell.fullText || spell.effect).split('\n\n').map((para, idx) => {
+                                      const isUpgrade =
+                                        para.startsWith('Using a Higher-Level') ||
+                                        para.startsWith('Cantrip Upgrade');
+                                      return (
+                                        <p
+                                          key={idx}
+                                          className={
+                                            isUpgrade
+                                              ? 'bg-amber-100/70 border border-amber-300 rounded p-2 text-stone-900 font-medium mt-1.5'
+                                              : 'text-stone-700'
+                                          }
+                                        >
+                                          {para}
+                                        </p>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Standalone Higher Levels (if not already included in fullText) */}
+                                  {spell.higherLevels && !(spell.fullText || '').includes(spell.higherLevels) && (
+                                    <div className="bg-amber-100/70 border border-amber-300 rounded p-2 text-stone-900 font-medium text-xs mt-1.5">
+                                      <span className="font-bold text-[#7b1113] uppercase tracking-wider text-[10px] block mb-0.5">
+                                        Higher-Level Casting
+                                      </span>
+                                      <p>{spell.higherLevels}</p>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                     </tbody>

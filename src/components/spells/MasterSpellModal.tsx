@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { Spell } from '../../types/spell';
-import { Search, X, Plus, BookOpen, Lock, CheckSquare, Square } from 'lucide-react';
+import { Search, X, Plus, BookOpen, Lock, CheckSquare, Square, ChevronRight } from 'lucide-react';
 import { Tooltip } from '../common/Tooltip';
 import { SpellTooltipCard } from '../common/TooltipContent';
+import { formatCastingTime } from '../../utils/formatters';
 
 const SCHOOL_COLORS: Record<string, string> = {
   Abjur: 'text-blue-800 border-blue-400 bg-blue-50',
@@ -39,6 +40,19 @@ export const MasterSpellModal: React.FC<{
   const [onlyPrepared, setOnlyPrepared] = useState<boolean>(false);
   const [onlyConc, setOnlyConc] = useState<boolean>(false);
   const [onlyRitual, setOnlyRitual] = useState<boolean>(false);
+  const [expandedSpells, setExpandedSpells] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (spellName: string) => {
+    setExpandedSpells((prev) => {
+      const next = new Set(prev);
+      if (next.has(spellName)) {
+        next.delete(spellName);
+      } else {
+        next.add(spellName);
+      }
+      return next;
+    });
+  };
 
   // Filter spells
   const filteredSpells = useMemo(() => {
@@ -254,7 +268,7 @@ export const MasterSpellModal: React.FC<{
                 <th className="w-24 text-left px-2">Range</th>
                 <th className="w-28 text-left px-2">Duration</th>
                 <th className="w-14 text-center px-1">Tags</th>
-                <th className="w-24 text-center px-2">Status</th>
+                <th className="w-28 text-center px-2">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -266,6 +280,7 @@ export const MasterSpellModal: React.FC<{
                 </tr>
               ) : (
                 filteredSpells.map((spell) => {
+                  const isExpanded = expandedSpells.has(spell.name);
                   const prepared = isSpellPrepared(spell.name);
                   const locked = isSpellLocked(spell.name);
                   const schoolBadge =
@@ -273,138 +288,243 @@ export const MasterSpellModal: React.FC<{
                     'text-stone-700 border-stone-300 bg-stone-100';
 
                   return (
-                    <tr
-                      key={spell.id}
-                      onClick={() => {
-                        if (prepared && locked) return;
-                        togglePreparedSpell(spell.name);
-                      }}
-                      className={`border-b border-stone-200 last:border-b-0 transition-colors ${
-                        prepared && locked
-                          ? 'bg-amber-100/60 cursor-default'
-                          : prepared
-                          ? 'bg-amber-100/50 hover:bg-amber-100/80 cursor-pointer font-medium'
-                          : 'hover:bg-stone-50 cursor-pointer'
-                      }`}
-                    >
-                      {/* Checkbox / Lock Status */}
-                      <td className="w-10 text-center py-2 px-1">
-                        {prepared && locked ? (
+                    <React.Fragment key={spell.id}>
+                      <tr
+                        onClick={() => {
+                          if (prepared && locked) return;
+                          togglePreparedSpell(spell.name);
+                        }}
+                        className={`border-b border-stone-200 last:border-b-0 transition-colors ${
+                          prepared && locked
+                            ? 'bg-amber-100/60 cursor-default'
+                            : prepared
+                            ? 'bg-amber-100/50 hover:bg-amber-100/80 cursor-pointer font-medium'
+                            : 'hover:bg-stone-50 cursor-pointer'
+                        }`}
+                      >
+                        {/* Checkbox / Lock Status */}
+                        <td className="w-10 text-center py-2 px-1">
+                          {prepared && locked ? (
+                            <span
+                              title="Spell is locked on spell sheet. Unlock to remove."
+                              className="cursor-not-allowed inline-flex items-center justify-center p-0.5 text-amber-800"
+                            >
+                              <Lock className="w-4 h-4 fill-amber-700/20" />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePreparedSpell(spell.name);
+                              }}
+                              className="cursor-pointer"
+                              title={prepared ? 'Remove from prepared' : 'Add to prepared'}
+                            >
+                              {prepared ? (
+                                <CheckSquare className="w-4 h-4 text-[#7b1113] fill-[#7b1113]/20 mx-auto" />
+                              ) : (
+                                <Square className="w-4 h-4 text-stone-400 hover:text-stone-600 mx-auto" />
+                              )}
+                            </button>
+                          )}
+                        </td>
+
+                        {/* Level */}
+                        <td className="w-16 text-center px-1 font-mono text-[11px] font-bold text-stone-600">
+                          {spell.level === 0 ? 'Cantrip' : `Lvl ${spell.level}`}
+                        </td>
+
+                        {/* Spell Name with Expand Chevron & Tooltip */}
+                        <td className="text-left px-3 font-fantasy font-bold text-xs sm:text-sm text-stone-900">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleExpand(spell.name);
+                              }}
+                              className="p-0.5 text-stone-400 hover:text-[#1f4e78] transition-transform duration-150 cursor-pointer"
+                              title={
+                                isExpanded
+                                  ? 'Collapse spell details'
+                                  : 'Expand full spell rules & upcasting'
+                              }
+                              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                            >
+                              <ChevronRight
+                                className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                                  isExpanded ? 'rotate-90 text-[#1f4e78]' : ''
+                                }`}
+                              />
+                            </button>
+                            <Tooltip maxWidth="max-w-lg" content={<SpellTooltipCard spell={spell} />}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleExpand(spell.name);
+                                }}
+                                className="text-left cursor-pointer hover:text-[#1f4e78] underline decoration-dotted font-fantasy font-bold text-xs sm:text-sm text-stone-900"
+                              >
+                                {spell.name}
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </td>
+
+                        {/* School Badge */}
+                        <td className="w-20 text-center px-1">
                           <span
-                            title="Spell is locked on spell sheet. Unlock to remove."
-                            className="cursor-not-allowed inline-flex items-center justify-center p-0.5 text-amber-800"
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${schoolBadge}`}
                           >
-                            <Lock className="w-4 h-4 fill-amber-700/20" />
+                            {spell.school}
                           </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePreparedSpell(spell.name);
-                            }}
-                            className="cursor-pointer"
-                            title={prepared ? 'Remove from prepared' : 'Add to prepared'}
-                          >
-                            {prepared ? (
-                              <CheckSquare className="w-4 h-4 text-[#7b1113] fill-[#7b1113]/20 mx-auto" />
-                            ) : (
-                              <Square className="w-4 h-4 text-stone-400 hover:text-stone-600 mx-auto" />
-                            )}
-                          </button>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Level */}
-                      <td className="w-16 text-center px-1 font-mono text-[11px] font-bold text-stone-600">
-                        {spell.level === 0 ? 'Cantrip' : `Lvl ${spell.level}`}
-                      </td>
-
-                      {/* Spell Name with Hover Tooltip */}
-                      <td className="text-left px-3 font-fantasy font-bold text-xs sm:text-sm text-stone-900">
-                        <Tooltip maxWidth="max-w-lg" content={<SpellTooltipCard spell={spell} />}>
-                          <span className="cursor-help hover:text-[#1f4e78] underline decoration-dotted">
-                            {spell.name}
-                          </span>
-                        </Tooltip>
-                      </td>
-
-                      {/* School Badge */}
-                      <td className="w-20 text-center px-1">
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${schoolBadge}`}
+                        {/* Casting Time (Truncated to 2-word limit) */}
+                        <td
+                          className="w-28 text-left px-2 font-mono text-stone-700 text-[11px] truncate"
+                          title={spell.castingTime}
                         >
-                          {spell.school}
-                        </span>
-                      </td>
+                          {formatCastingTime(spell.castingTime)}
+                        </td>
 
-                      {/* Casting Time */}
-                      <td className="w-28 text-left px-2 font-mono text-stone-700 text-[11px] truncate">
-                        {spell.castingTime}
-                      </td>
+                        {/* Range */}
+                        <td className="w-24 text-left px-2 font-mono text-stone-700 text-[11px] truncate">
+                          {spell.range}
+                        </td>
 
-                      {/* Range */}
-                      <td className="w-24 text-left px-2 font-mono text-stone-700 text-[11px] truncate">
-                        {spell.range}
-                      </td>
+                        {/* Duration */}
+                        <td className="w-28 text-left px-2 font-mono text-stone-700 text-[11px] truncate">
+                          {spell.duration}
+                        </td>
 
-                      {/* Duration */}
-                      <td className="w-28 text-left px-2 font-mono text-stone-700 text-[11px] truncate">
-                        {spell.duration}
-                      </td>
+                        {/* Concentration / Ritual Tags */}
+                        <td className="w-14 text-center px-1">
+                          <div className="flex items-center justify-center gap-1">
+                            {spell.conc && (
+                              <span
+                                className="px-1 py-0.2 text-[9px] font-bold rounded bg-amber-100 text-amber-900 border border-amber-300"
+                                title="Concentration"
+                              >
+                                C
+                              </span>
+                            )}
+                            {spell.ritual && (
+                              <span
+                                className="px-1 py-0.2 text-[9px] font-bold rounded bg-cyan-100 text-cyan-900 border border-cyan-300"
+                                title="Ritual"
+                              >
+                                R
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
-                      {/* Concentration / Ritual Tags */}
-                      <td className="w-14 text-center px-1">
-                        <div className="flex items-center justify-center gap-1">
-                          {spell.conc && (
-                            <span
-                              className="px-1 py-0.2 text-[9px] font-bold rounded bg-amber-100 text-amber-900 border border-amber-300"
-                              title="Concentration"
+                        {/* Prepare Action Button (Wider w-28, whitespace-nowrap prevents + wrapping) */}
+                        <td className="w-28 text-center px-2">
+                          {prepared && locked ? (
+                            <button
+                              type="button"
+                              disabled
+                              title="Spell is locked on spell sheet. Unlock on spell sheet to remove."
+                              className="w-full py-0.5 rounded text-[10px] font-bold bg-[#7b1113]/70 text-white cursor-not-allowed opacity-80 flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
                             >
-                              C
-                            </span>
-                          )}
-                          {spell.ritual && (
-                            <span
-                              className="px-1 py-0.2 text-[9px] font-bold rounded bg-cyan-100 text-cyan-900 border border-cyan-300"
-                              title="Ritual"
+                              <Lock className="w-3 h-3" />
+                              <span>Locked</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePreparedSpell(spell.name);
+                              }}
+                              className={`w-full py-0.5 rounded text-[10px] font-bold transition-all shadow-2xs whitespace-nowrap flex items-center justify-center gap-0.5 ${
+                                prepared
+                                  ? 'bg-[#7b1113] hover:bg-[#630e10] text-white'
+                                  : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 hover:border-stone-400'
+                              }`}
                             >
-                              R
-                            </span>
+                              <span>{prepared ? 'Prepared' : '+ Prepare'}</span>
+                            </button>
                           )}
-                        </div>
-                      </td>
+                        </td>
+                      </tr>
 
-                      {/* Prepare Action Button */}
-                      <td className="w-24 text-center px-2">
-                        {prepared && locked ? (
-                          <button
-                            type="button"
-                            disabled
-                            title="Spell is locked on spell sheet. Unlock on spell sheet to remove."
-                            className="w-full py-0.5 rounded text-[10px] font-bold bg-[#7b1113]/70 text-white cursor-not-allowed opacity-80 flex items-center justify-center gap-1 shadow-2xs"
-                          >
-                            <Lock className="w-3 h-3" />
-                            <span>Locked</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePreparedSpell(spell.name);
-                            }}
-                            className={`w-full py-0.5 rounded text-[10px] font-bold transition-all shadow-2xs ${
-                              prepared
-                                ? 'bg-[#7b1113] hover:bg-[#630e10] text-white'
-                                : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 hover:border-stone-400'
-                            }`}
-                          >
-                            {prepared ? 'Prepared' : '+ Prepare'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+                      {/* In-Flow Accordion Drawer */}
+                      {isExpanded && (
+                        <tr className="bg-[#faf6f0] border-b border-stone-300">
+                          <td colSpan={9} className="p-3.5 space-y-2.5 text-xs text-stone-800">
+                            {/* Meta tags bar */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-600 pb-2 border-b border-stone-200">
+                              <div>
+                                <strong className="text-stone-800">Casting Time:</strong> {spell.castingTime}
+                              </div>
+                              <div>
+                                <strong className="text-stone-800">Range:</strong> {spell.range}
+                              </div>
+                              <div>
+                                <strong className="text-stone-800">Duration:</strong> {spell.duration}
+                              </div>
+                              <div>
+                                <strong className="text-stone-800">Components:</strong> {spell.components || 'V, S'}
+                                {spell.cost && (
+                                  <span className="text-amber-800 font-semibold ml-1">({spell.cost})</span>
+                                )}
+                              </div>
+                              {spell.areaOrTargets && (
+                                <div>
+                                  <strong className="text-stone-800">Target/Area:</strong> {spell.areaOrTargets}
+                                </div>
+                              )}
+                              {spell.saveOrAttack && (
+                                <div>
+                                  <strong className="text-stone-800">Save/Attack:</strong> {spell.saveOrAttack}
+                                </div>
+                              )}
+                              {spell.source && (
+                                <div>
+                                  <strong className="text-stone-800">Source:</strong> {spell.source}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Full rules paragraphs */}
+                            <div className="space-y-1.5 text-stone-700 font-sans leading-relaxed">
+                              {(spell.fullText || spell.effect).split('\n\n').map((para, idx) => {
+                                const isUpgrade =
+                                  para.startsWith('Using a Higher-Level') ||
+                                  para.startsWith('Cantrip Upgrade');
+                                return (
+                                  <p
+                                    key={idx}
+                                    className={
+                                      isUpgrade
+                                        ? 'bg-amber-100/70 border border-amber-300 rounded p-2 text-stone-900 font-medium mt-1.5'
+                                        : 'text-stone-700'
+                                    }
+                                  >
+                                    {para}
+                                  </p>
+                                );
+                              })}
+                            </div>
+
+                            {/* Standalone Higher Levels (if not already included in fullText) */}
+                            {spell.higherLevels && !(spell.fullText || '').includes(spell.higherLevels) && (
+                              <div className="bg-amber-100/70 border border-amber-300 rounded p-2 text-stone-900 font-medium text-xs mt-1.5">
+                                <span className="font-bold text-[#7b1113] uppercase tracking-wider text-[10px] block mb-0.5">
+                                  Higher-Level Casting
+                                </span>
+                                <p>{spell.higherLevels}</p>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })
               )}

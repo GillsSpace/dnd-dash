@@ -82,7 +82,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
-            className={`z-50 ${maxWidth} rounded-lg bg-slate-900/95 border border-amber-500/40 p-3.5 text-xs text-slate-100 shadow-2xl backdrop-blur-md pointer-events-none transition-opacity duration-150 animate-in fade-in-0 zoom-in-95`}
+            className={`z-50 ${maxWidth} rounded-lg bg-[#1c1917]/95 border border-amber-900/50 p-3 text-xs text-stone-200 shadow-2xl backdrop-blur-md pointer-events-none transition-opacity duration-150 animate-in fade-in-0 zoom-in-95 font-sans leading-relaxed`}
           >
             {content}
           </div>

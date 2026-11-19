@@ -16,7 +16,7 @@ interface RollRecord {
 const DIE_TYPES = [4, 6, 8, 10, 12, 20, 100] as const;
 
 export const DiceRollerSection: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [diceCount, setDiceCount] = useState(1);
   const [modifier, setModifier] = useState(0);
   const [latestRoll, setLatestRoll] = useState<RollRecord | null>(null);
@@ -188,10 +188,10 @@ export const DiceRollerSection: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleAdvantageRoll('adv')}
-                className="px-2.5 py-1 rounded bg-emerald-50 hover:bg-emerald-100 border border-emerald-400 text-emerald-800 font-bold text-xs shadow-2xs transition-colors flex items-center gap-1"
+                className="px-2.5 py-1 rounded bg-[#d9ead3] hover:bg-[#c8e0c2] border border-[#276749]/50 text-[#276749] font-bold text-xs shadow-2xs transition-colors flex items-center gap-1"
                 title="Roll 2d20 take highest + modifier"
               >
-                <Sparkles className="w-3 h-3 text-emerald-600" />
+                <Sparkles className="w-3 h-3 text-[#276749]" />
                 <span>Advantage</span>
               </button>
               <button
@@ -229,7 +229,7 @@ export const DiceRollerSection: React.FC = () => {
             <div
               className={`p-3 rounded border flex flex-col sm:flex-row items-center justify-between gap-3 ${
                 latestRoll.isNat20
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-950'
+                  ? 'bg-[#d9ead3]/80 border-[#276749] text-[#1e5239]'
                   : latestRoll.isNat1
                   ? 'bg-rose-50 border-rose-400 text-rose-950'
                   : 'bg-white border-stone-300 text-stone-900'
@@ -239,7 +239,7 @@ export const DiceRollerSection: React.FC = () => {
                 <div
                   className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center font-mono font-black text-2xl shadow-sm shrink-0 ${
                     latestRoll.isNat20
-                      ? 'bg-emerald-600 text-white animate-bounce'
+                      ? 'bg-[#276749] text-white animate-bounce'
                       : latestRoll.isNat1
                       ? 'bg-rose-600 text-white'
                       : 'bg-[#1f4e78] text-white'
@@ -251,7 +251,7 @@ export const DiceRollerSection: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm font-fantasy">{latestRoll.label}</span>
                     {latestRoll.isNat20 && (
-                      <span className="text-[10px] font-bold uppercase bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded border border-emerald-400">
+                      <span className="text-[10px] font-bold uppercase bg-[#d9ead3] text-[#276749] px-1.5 py-0.5 rounded border border-[#276749]">
                         NAT 20! Critical Hit!
                       </span>
                     )}
@@ -296,7 +296,7 @@ export const DiceRollerSection: React.FC = () => {
                     className="inline-flex items-center gap-1.5 bg-white border border-stone-200 rounded px-2 py-0.5 text-[11px] font-mono text-stone-700 shadow-2xs"
                   >
                     <span className="text-stone-500 text-[10px]">{h.label}:</span>
-                    <span className={`font-bold ${h.isNat20 ? 'text-emerald-700' : h.isNat1 ? 'text-rose-700' : 'text-[#1f4e78]'}`}>
+                    <span className={`font-bold ${h.isNat20 ? 'text-[#276749]' : h.isNat1 ? 'text-rose-700' : 'text-[#1f4e78]'}`}>
                       {h.total}
                     </span>
                   </div>

@@ -871,20 +871,20 @@ export const BackSheetView: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Footer: Variant Encumbrance Rules Toggle */}
-      <div className="bg-[#f6efe6] border border-stone-300 rounded p-3 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+      {/* Bottom Footer: Variant Encumbrance Rules */}
+      <div className="bg-[#f6efe6] border border-stone-300 rounded p-2.5 flex items-center justify-between gap-3 text-xs shadow-2xs">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 bg-[#1f4e78]/10 text-[#1f4e78] rounded">
+          <div className="p-1.5 bg-[#1f4e78]/10 text-[#1f4e78] rounded shrink-0">
             <Scale className="w-4 h-4" />
           </div>
           <div>
-            <span className="font-bold text-stone-800 text-xs">Variant Encumbrance Rules</span>
+            <span className="font-bold text-stone-800 text-xs">Use Variant Encumbrance Rules</span>
             <p className="text-[10px] text-stone-500">
               Encumbered at &gt;{strScore * 5} lbs (-10 ft Speed) • Heavily Encumbered at &gt;{strScore * 10} lbs (-20 ft Speed, Disadvantage on STR/DEX/CON checks, attacks, and saves).
             </p>
           </div>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer select-none">
+        <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 ml-auto">
           <input
             type="checkbox"
             checked={!!character.useVariantEncumbrance}
@@ -894,10 +894,8 @@ export const BackSheetView: React.FC = () => {
                 useVariantEncumbrance: e.target.checked,
               }))
             }
-            className="sr-only peer"
           />
-          <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f4e78]"></div>
-          <span className="ms-2.5 text-xs font-semibold text-stone-700">
+          <span className="text-xs font-semibold text-stone-700">
             {character.useVariantEncumbrance ? 'Active' : 'Disabled'}
           </span>
         </label>

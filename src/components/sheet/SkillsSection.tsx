@@ -165,7 +165,7 @@ export const SkillsSection: React.FC = () => {
                           <Tooltip
                             content={
                               <div className="space-y-1 max-w-xs text-left">
-                                <p className="font-fantasy font-bold text-emerald-300 text-xs">
+                                <p className="font-fantasy font-bold text-amber-300 text-xs">
                                   {label} Advantage
                                 </p>
                                 <p className="text-xs text-slate-200 whitespace-pre-wrap">
@@ -184,11 +184,10 @@ export const SkillsSection: React.FC = () => {
                                   note: skillData.advNote || '',
                                 })
                               }
-                              className="inline-flex items-center gap-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-1 py-0.5 rounded text-[9px] hover:bg-emerald-200 transition-colors shadow-xs"
+                              className="bg-[#d9ead3] text-[#276749] border border-[#a2caa0] font-bold px-1.5 py-0.5 rounded text-[9px] hover:bg-[#c8e0c2] transition-colors shadow-2xs"
                               title="Advantage Active (click to edit note)"
                             >
                               ADV
-                              <span className="text-[10px]">📝</span>
                             </button>
                           </Tooltip>
                         ) : (
@@ -202,7 +201,7 @@ export const SkillsSection: React.FC = () => {
                                 note: '',
                               })
                             }
-                            className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-1 py-0.5 rounded text-[9px] hover:bg-emerald-200 transition-colors shadow-xs"
+                            className="bg-[#d9ead3] text-[#276749] border border-[#a2caa0] font-bold px-1.5 py-0.5 rounded text-[9px] hover:bg-[#c8e0c2] transition-colors shadow-2xs"
                             title="Advantage Active (click to edit)"
                           >
                             ADV

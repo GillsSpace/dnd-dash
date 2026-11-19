@@ -178,16 +178,16 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({ settings }) => {
 
             {/* Reference Info Grid */}
             <div className="grid grid-cols-12 gap-1.5 mt-1.5 bg-[#f6efe6] border border-stone-300 p-1.5 text-xs">
-              <div className="col-span-4 border-r border-stone-300 pr-2">
+              <div className="col-span-3 border-r border-stone-300 pr-2">
                 <span className="text-[8px] font-bold text-[#991b1b] uppercase block">Character Name</span>
                 <span className="text-sm font-extrabold text-[#1f4e78] block truncate">
                   {character.name || 'Unnamed Adventurer'}
                 </span>
               </div>
 
-              <div className="col-span-2 border-r border-stone-300 pr-2">
+              <div className="col-span-4 border-r border-stone-300 pr-2">
                 <span className="text-[8px] font-bold text-[#991b1b] uppercase block">Class &amp; Level</span>
-                <span className="font-bold text-stone-900 block truncate text-[11px]">
+                <span className="font-bold text-stone-900 block text-[10.5px] leading-tight">
                   {classSummary || `Level ${character.level}`}
                 </span>
               </div>
@@ -202,8 +202,8 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({ settings }) => {
                 <span className="font-semibold text-stone-800 block truncate text-[11px]">{character.background || '—'}</span>
               </div>
 
-              <div className="col-span-2">
-                <span className="text-[8px] font-bold text-[#991b1b] uppercase block">Proficiency</span>
+              <div className="col-span-1 text-center">
+                <span className="text-[8px] font-bold text-[#991b1b] uppercase block">Prof.</span>
                 <span className="font-mono font-extrabold text-sm text-[#276749]">
                   +{character.proficiencyBonus}
                 </span>
@@ -211,7 +211,7 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({ settings }) => {
             </div>
           </div>
 
-          {/* Abilities & Saving Throws Row */}
+          {/* Abilities & Saving Throws Row - Compact Print Layout */}
           <div className="grid grid-cols-6 gap-1.5">
             {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as AbilityKey[]).map((ability) => {
               const score = character.abilities[ability]?.score ?? 10;
@@ -222,18 +222,20 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({ settings }) => {
               return (
                 <div
                   key={ability}
-                  className="bg-[#f6efe6] border border-stone-400 p-1 text-center rounded flex flex-col justify-between"
+                  className="bg-[#f6efe6] border border-stone-400 px-1 py-0.5 rounded text-center flex flex-col justify-between"
                 >
-                  <span className="text-[9px] font-bold text-[#7b1113] uppercase tracking-wider block">
-                    {ability.toUpperCase()}
-                  </span>
-                  <span className="font-mono text-lg font-extrabold text-stone-900 my-0.5">
-                    {mod >= 0 ? `+${mod}` : mod}
-                  </span>
-                  <div className="bg-white border border-stone-300 rounded py-0.2 text-[9px] text-stone-700 font-mono font-bold">
-                    Score {score}
+                  <div className="flex items-center justify-between border-b border-stone-300 pb-0.5">
+                    <span className="text-[9px] font-bold text-[#7b1113] uppercase tracking-wider">
+                      {ability.toUpperCase()}
+                    </span>
+                    <span className="text-[8px] font-mono text-stone-600 bg-white px-1 rounded border border-stone-200 font-bold">
+                      {score}
+                    </span>
                   </div>
-                  <div className="mt-0.5 pt-0.5 border-t border-stone-300 flex items-center justify-between text-[9px]">
+                  <div className="font-mono text-base font-black text-stone-900 py-0.5">
+                    {mod >= 0 ? `+${mod}` : mod}
+                  </div>
+                  <div className="pt-0.5 border-t border-stone-300 flex items-center justify-between text-[8px] leading-tight">
                     <span className="text-stone-500 font-medium">Save:</span>
                     <span className="font-mono font-bold text-stone-900 flex items-center gap-0.5">
                       {isProf && <span className="text-[#1f4e78]">●</span>}
@@ -370,7 +372,7 @@ export const PrintDocument: React.FC<PrintDocumentProps> = ({ settings }) => {
                         </td>
                         <td className="text-center py-0.5 px-1 w-7">
                           {skillData.adv ? (
-                            <span className="text-emerald-800 font-bold text-[8px] bg-emerald-100 px-1 rounded border border-emerald-300">
+                            <span className="text-[#276749] font-bold text-[8px] bg-[#d9ead3] px-1 rounded border border-[#a2caa0]">
                               ADV
                             </span>
                           ) : (

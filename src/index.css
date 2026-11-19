@@ -87,8 +87,17 @@
 
 /* Print styles for native PDF and paper printing */
 @page {
+  margin: 0.3in 0.35in;
+}
+
+@page letter-page {
   size: letter portrait;
-  margin: 0.35in 0.4in;
+  margin: 0.3in 0.35in;
+}
+
+@page a4-page {
+  size: A4 portrait;
+  margin: 8mm 10mm;
 }
 
 @media print {
@@ -104,6 +113,14 @@
     zoom: 1 !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  body.paper-letter {
+    page: letter-page;
+  }
+
+  body.paper-a4 {
+    page: a4-page;
   }
 
   .min-h-screen {
@@ -122,5 +139,29 @@
   .print-avoid-break {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  /* Ink-Saver Mode: Removes heavy colored fills to conserve printer toner */
+  .ink-saver {
+    filter: contrast(105%);
+  }
+  .ink-saver .bg-\[\#7b1113\],
+  .ink-saver .bg-\[\#1f4e78\],
+  .ink-saver .bg-\[\#276749\] {
+    background-color: #1c1917 !important;
+    color: #ffffff !important;
+  }
+  .ink-saver .bg-\[\#f6efe6\],
+  .ink-saver .bg-\[\#faf6f0\],
+  .ink-saver .bg-\[\#d9ead3\],
+  .ink-saver .bg-amber-50,
+  .ink-saver .bg-blue-50,
+  .ink-saver .bg-emerald-50,
+  .ink-saver .bg-rose-50 {
+    background-color: #ffffff !important;
+  }
+  .ink-saver .border-stone-300,
+  .ink-saver .border-stone-400 {
+    border-color: #78716c !important;
   }
 }

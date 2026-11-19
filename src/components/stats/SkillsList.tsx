@@ -32,7 +32,13 @@ export const SkillsList: React.FC = () => {
     updateCharacter((prev) => {
       const current = prev.skills[key]?.prof || 'none';
       const next: SkillProficiency =
-        current === 'none' ? 'prof' : current === 'prof' ? 'expert' : 'none';
+        current === 'none'
+          ? 'half'
+          : current === 'half'
+          ? 'prof'
+          : current === 'prof'
+          ? 'expert'
+          : 'none';
 
       return {
         ...prev,
@@ -51,7 +57,7 @@ export const SkillsList: React.FC = () => {
     <div className="bg-slate-900/80 rounded-xl border border-slate-800 p-4 shadow-lg backdrop-blur space-y-3">
       <div className="flex items-center justify-between border-b border-slate-800 pb-2">
         <h3 className="font-fantasy font-bold text-slate-200 text-sm tracking-wide">Skills</h3>
-        <span className="text-[10px] text-slate-400">Click dot to cycle Prof (○ → ● → ★)</span>
+        <span className="text-[10px] text-slate-400">Click dot to cycle Prof (○ → ½ → ● → ★)</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
@@ -86,6 +92,8 @@ export const SkillsList: React.FC = () => {
                       <span className="text-amber-400 font-bold text-sm">★</span>
                     ) : skillData.prof === 'prof' ? (
                       <span className="text-emerald-400 font-bold text-xs">●</span>
+                    ) : skillData.prof === 'half' ? (
+                      <span className="text-sky-400 font-bold text-[10px]">½</span>
                     ) : (
                       <span className="text-slate-600 hover:text-slate-400 text-xs">○</span>
                     )}

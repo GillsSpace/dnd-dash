@@ -284,23 +284,87 @@ export const BackSheetView: React.FC = () => {
           </div>
 
           {/* Encumbrance Bar */}
-          <div className="bg-white border border-stone-400 p-2 rounded">
-            <div className="flex justify-between items-center text-[11px] mb-1">
-              <span className="font-bold text-stone-800 flex items-center gap-1">
+          <div className="bg-white border border-stone-400 p-2.5 rounded space-y-1.5 shadow-2xs">
+            <div className="flex justify-between items-center text-[11px]">
+              <div className="flex items-center gap-1.5">
                 <Scale className="w-3.5 h-3.5 text-stone-600" />
-                <span>Total Encumbrance</span>
-              </span>
-              <span className="font-mono font-bold text-stone-900">
-                {totalWeight} / {maxCarryWeight} lbs
-              </span>
+                <span className="font-bold text-stone-800">
+                  {character.useVariantEncumbrance ? 'Variant Encumbrance' : 'Total Encumbrance'}
+                </span>
+                {character.useVariantEncumbrance && (
+                  <span className="text-[9px] font-mono bg-sky-100 text-sky-800 border border-sky-300 px-1 rounded font-semibold">
+                    Variant
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {character.useVariantEncumbrance && totalWeight > maxCarryWeight ? (
+                  <span className="text-[10px] font-bold text-red-800 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded animate-pulse">
+                    Over Max Capacity!
+                  </span>
+                ) : character.useVariantEncumbrance && totalWeight > strScore * 10 ? (
+                  <span className="text-[10px] font-bold text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded">
+                    Heavily Encumbered (-20 ft Speed, Disadv)
+                  </span>
+                ) : character.useVariantEncumbrance && totalWeight > strScore * 5 ? (
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded">
+                    Encumbered (-10 ft Speed)
+                  </span>
+                ) : !character.useVariantEncumbrance && totalWeight > maxCarryWeight ? (
+                  <span className="text-[10px] font-bold text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded">
+                    Over Capacity
+                  </span>
+                ) : null}
+                <span className="font-mono font-bold text-stone-900">
+                  {totalWeight} / {maxCarryWeight} lbs
+                </span>
+              </div>
             </div>
-            <div className="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
+
+            <div className="relative w-full bg-stone-200 h-2.5 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${
-                  totalWeight > maxCarryWeight ? 'bg-red-600' : 'bg-[#276749]'
+                className={`h-full rounded-full transition-all duration-300 ${
+                  totalWeight > maxCarryWeight
+                    ? 'bg-red-700'
+                    : character.useVariantEncumbrance && totalWeight > strScore * 10
+                    ? 'bg-orange-600'
+                    : character.useVariantEncumbrance && totalWeight > strScore * 5
+                    ? 'bg-amber-500'
+                    : 'bg-[#276749]'
                 }`}
                 style={{ width: `${Math.min(100, Math.round((totalWeight / maxCarryWeight) * 100))}%` }}
               />
+              {/* Variant threshold lines at 33.3% and 66.7% */}
+              {character.useVariantEncumbrance && (
+                <>
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-amber-700/60 z-10"
+                    style={{ left: '33.33%' }}
+                    title={`Encumbered at >${strScore * 5} lbs`}
+                  />
+                  <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-red-700/60 z-10"
+                    style={{ left: '66.67%' }}
+                    title={`Heavily Encumbered at >${strScore * 10} lbs`}
+                  />
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center text-[9px] text-stone-500 font-mono">
+              {character.useVariantEncumbrance ? (
+                <>
+                  <span>Normal: ≤{strScore * 5} lbs</span>
+                  <span className="text-amber-700">Encumbered: &gt;{strScore * 5} lbs (-10ft)</span>
+                  <span className="text-red-700">Heavily: &gt;{strScore * 10} lbs (-20ft, Disadv)</span>
+                  <span>Max: {maxCarryWeight} lbs</span>
+                </>
+              ) : (
+                <>
+                  <span>Standard Capacity: {maxCarryWeight} lbs (STR × 15)</span>
+                  <span>Push / Drag / Lift: {strScore * 30} lbs (STR × 30)</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -805,6 +869,38 @@ export const BackSheetView: React.FC = () => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Bottom Footer: Variant Encumbrance Rules Toggle */}
+      <div className="bg-[#f6efe6] border border-stone-300 rounded p-3 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-[#1f4e78]/10 text-[#1f4e78] rounded">
+            <Scale className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="font-bold text-stone-800 text-xs">Variant Encumbrance Rules</span>
+            <p className="text-[10px] text-stone-500">
+              Encumbered at &gt;{strScore * 5} lbs (-10 ft Speed) • Heavily Encumbered at &gt;{strScore * 10} lbs (-20 ft Speed, Disadvantage on STR/DEX/CON checks, attacks, and saves).
+            </p>
+          </div>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={!!character.useVariantEncumbrance}
+            onChange={(e) =>
+              updateCharacter((prev) => ({
+                ...prev,
+                useVariantEncumbrance: e.target.checked,
+              }))
+            }
+            className="sr-only peer"
+          />
+          <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1f4e78]"></div>
+          <span className="ms-2.5 text-xs font-semibold text-stone-700">
+            {character.useVariantEncumbrance ? 'Active' : 'Disabled'}
+          </span>
+        </label>
       </div>
     </div>
   );

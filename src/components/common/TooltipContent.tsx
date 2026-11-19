@@ -239,12 +239,27 @@ export const SkillTooltipCard: React.FC<{
   name: string;
   ability: string;
   abilityMod: number;
-  prof: 'none' | 'prof' | 'expert';
+  prof: 'none' | 'half' | 'prof' | 'expert';
   profBonus: number;
   totalBonus: number;
 }> = ({ name, ability, abilityMod, prof, profBonus, totalBonus }) => {
-  const profMultiplier = prof === 'expert' ? 2 : prof === 'prof' ? 1 : 0;
-  const profContribution = profBonus * profMultiplier;
+  const profContribution =
+    prof === 'expert'
+      ? profBonus * 2
+      : prof === 'prof'
+      ? profBonus
+      : prof === 'half'
+      ? Math.floor(profBonus / 2)
+      : 0;
+
+  const profLabel =
+    prof === 'expert'
+      ? 'Expertise'
+      : prof === 'prof'
+      ? 'Proficient'
+      : prof === 'half'
+      ? 'Half-Proficient'
+      : 'None';
 
   return (
     <div className="space-y-1.5 text-left w-52">
@@ -261,9 +276,7 @@ export const SkillTooltipCard: React.FC<{
           <span>{abilityMod >= 0 ? `+${abilityMod}` : abilityMod}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-400">
-            Proficiency ({prof === 'expert' ? 'Expertise' : prof === 'prof' ? 'Proficient' : 'None'}):
-          </span>
+          <span className="text-slate-400">Proficiency ({profLabel}):</span>
           <span>{profContribution >= 0 ? `+${profContribution}` : profContribution}</span>
         </div>
         <div className="pt-1 border-t border-slate-800 flex justify-between font-semibold text-slate-100">

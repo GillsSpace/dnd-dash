@@ -16,13 +16,14 @@ import { Spell } from '../types/spell';
 import { initialCharacter } from '../data/defaultCharacter';
 import { masterSpellList } from '../data/masterSpells';
 import { MULTICLASS_SPELL_SLOTS } from '../data/classProgression';
-import { calculateSpellSlots, calculateClassDefaultHp } from '../utils/spellSlotHelper';
+import { calculateSpellSlots, calculateClassDefaultHp, WARLOCK_PACT_SLOTS } from '../utils/spellSlotHelper';
 import { DND2024_WEAPONS } from '../data/dnd2024Weapons';
 
 interface CharacterContextType {
   character: CharacterData;
   masterSpells: Spell[];
   updateCharacter: (updater: (prev: CharacterData) => CharacterData) => void;
+  updateSkillAdvantage: (skillKey: string, adv: boolean, note?: string) => void;
   // Base stats lock
   updateBaseScore: (key: AbilityKey, newScore: number) => void;
   toggleBaseStatsLock: () => void;
@@ -457,6 +458,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const mod = getAbilityMod(skill.ability);
     if (skill.prof === 'expert') return mod + character.proficiencyBonus * 2;
     if (skill.prof === 'prof') return mod + character.proficiencyBonus;
+    if (skill.prof === 'half') return mod + Math.floor(character.proficiencyBonus / 2);
     return mod;
   };
 
@@ -1308,16 +1310,74 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
-  const shortRest = () => {
+  const updateSkillAdvantage = (skillKey: string, adv: boolean, note?: string) => {
     updateCharacter((prev) => ({
       ...prev,
-      resources: prev.resources.map((res) => {
+      skills: {
+        ...prev.skills,
+        [skillKey]: {
+          ...prev.skills[skillKey],
+          adv,
+          advantage: adv,
+          advNote: note !== undefined ? note : prev.skills[skillKey]?.advNote,
+        },
+      },
+    }));
+  };
+
+  const shortRest = () => {
+    updateCharacter((prev) => {
+      // 1. Reset short rest resources
+      const newResources = prev.resources.map((res) => {
         const maxVal = res.useProfBonus ? prev.proficiencyBonus : res.max;
         return res.reset === 'Short Rest' || res.reset === 'Short or Long Rest'
           ? { ...res, max: maxVal, current: maxVal }
           : { ...res, max: maxVal };
-      }),
-    }));
+      });
+
+      // 2. Reset Warlock Pact Magic slots
+      const warlockClass = prev.classes?.find((c) => c.name.toLowerCase().includes('warlock'));
+      const newSlots = { ...prev.spellcasting.slots };
+
+      if (warlockClass) {
+        const wLvl = Math.min(20, Math.max(1, warlockClass.level));
+        const pactInfo = WARLOCK_PACT_SLOTS[wLvl];
+        const hasOtherCasters = prev.classes?.some(
+          (c) =>
+            !c.name.toLowerCase().includes('warlock') &&
+            ['wizard', 'cleric', 'druid', 'sorcerer', 'bard', 'paladin', 'ranger', 'artificer'].some((cs) =>
+              c.name.toLowerCase().includes(cs)
+            )
+        );
+
+        if (!hasOtherCasters) {
+          // Pure Warlock: all slots reset on short rest
+          Object.keys(newSlots).forEach((lvl) => {
+            if (newSlots[lvl]) {
+              newSlots[lvl] = { ...newSlots[lvl], used: 0 };
+            }
+          });
+        } else if (pactInfo) {
+          // Multiclass Warlock: recover pactInfo.count slots of pactInfo.slotLevel
+          const pactSlotKey = pactInfo.slotLevel.toString();
+          if (newSlots[pactSlotKey]) {
+            newSlots[pactSlotKey] = {
+              ...newSlots[pactSlotKey],
+              used: Math.max(0, newSlots[pactSlotKey].used - pactInfo.count),
+            };
+          }
+        }
+      }
+
+      return {
+        ...prev,
+        resources: newResources,
+        spellcasting: {
+          ...prev.spellcasting,
+          slots: newSlots,
+        },
+      };
+    });
   };
 
   const longRest = () => {
@@ -1519,6 +1579,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         character,
         masterSpells,
         updateCharacter,
+        updateSkillAdvantage,
         updateBaseScore,
         toggleBaseStatsLock,
         addWeapon,

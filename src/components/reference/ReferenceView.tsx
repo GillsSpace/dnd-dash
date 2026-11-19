@@ -15,6 +15,7 @@ import {
   Sparkles,
   ChevronRight,
 } from 'lucide-react';
+import { DiceRollerSection } from './DiceRollerSection';
 
 type CategoryKey = 'action' | 'bonus' | 'reaction' | 'movement' | 'condition' | 'environment';
 type CategoryFilter = 'all' | CategoryKey;
@@ -279,6 +280,9 @@ export const ReferenceView: React.FC = () => {
           D&D 5.5e (2024 Player&apos;s Handbook & Rules Glossary)
         </span>
       </div>
+
+      {/* Collapsible Quick Dice Roller Section */}
+      <DiceRollerSection />
 
       {/* 2. Minimalist Parchment Control Box */}
       <div className="bg-[#f6efe6] p-2.5 sm:p-3 border border-stone-300 space-y-2 text-xs">

@@ -1,7 +1,7 @@
 import { Spell } from './spell';
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
-export type SkillProficiency = 'none' | 'prof' | 'expert';
+export type SkillProficiency = 'none' | 'half' | 'prof' | 'expert';
 
 export interface AbilityData {
   score: number;
@@ -11,7 +11,9 @@ export interface AbilityData {
 export interface SkillData {
   ability: AbilityKey;
   prof: SkillProficiency;
+  adv?: boolean;
   advantage?: boolean;
+  advNote?: string;
 }
 
 export interface ClassLevel {
@@ -253,10 +255,18 @@ export interface CharacterData {
     tools: string[];
   };
   inventory: InventoryItem[];
+  useVariantEncumbrance?: boolean;
   currency: Currency;
   notes?: CharacterNote[];
   roleplaying?: {
     personality?: string;
     bio?: string;
   };
+  printSettings?: PrintSettings;
+}
+
+export interface PrintSettings {
+  paperSize: 'letter' | 'a4';
+  colorMode: 'color' | 'inkSaver';
+  scope: 'all' | 'front' | 'spells' | 'back' | 'notes';
 }

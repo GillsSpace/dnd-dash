@@ -5,6 +5,7 @@ import { Tooltip } from '../common/Tooltip';
 import { SkillTooltipCard } from '../common/TooltipContent';
 import { Edit2 } from 'lucide-react';
 import { PassiveModal, PassiveSenseKey } from '../modals/PassiveModal';
+import { SkillAdvantageModal } from '../modals/SkillAdvantageModal';
 
 const SKILL_LIST: { key: string; label: string; ability: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' }[] = [
   { key: 'acrobatics', label: 'Acrobatics (Dex)', ability: 'dex' },
@@ -28,14 +29,26 @@ const SKILL_LIST: { key: string; label: string; ability: 'str' | 'dex' | 'con' |
 ];
 
 export const SkillsSection: React.FC = () => {
-  const { character, updateCharacter, getAbilityMod, getSkillBonus } = useCharacter();
+  const { character, updateCharacter, updateSkillAdvantage, getAbilityMod, getSkillBonus } = useCharacter();
   const [selectedSense, setSelectedSense] = useState<PassiveSenseKey | null>(null);
+  const [advantageModalSkill, setAdvantageModalSkill] = useState<{
+    key: string;
+    label: string;
+    adv: boolean;
+    note: string;
+  } | null>(null);
 
   const cycleSkillProf = (key: string) => {
     updateCharacter((prev) => {
       const current = prev.skills[key]?.prof || 'none';
       const next: SkillProficiency =
-        current === 'none' ? 'prof' : current === 'prof' ? 'expert' : 'none';
+        current === 'none'
+          ? 'half'
+          : current === 'half'
+          ? 'prof'
+          : current === 'prof'
+          ? 'expert'
+          : 'none';
 
       return {
         ...prev,
@@ -126,7 +139,7 @@ export const SkillsSection: React.FC = () => {
                     <button
                       onClick={() => cycleSkillProf(key)}
                       className="hover:scale-125 transition-transform text-xs"
-                      title="Click to toggle (None -> Proficient -> Expertise)"
+                      title="Click to toggle (None -> Half -> Proficient -> Expertise)"
                     >
                       {skillData.prof === 'expert' ? (
                         <span className="text-amber-800 font-bold text-[10px] bg-amber-100 px-1 rounded border border-amber-300">
@@ -134,6 +147,10 @@ export const SkillsSection: React.FC = () => {
                         </span>
                       ) : skillData.prof === 'prof' ? (
                         <span className="text-stone-900 text-xs">●</span>
+                      ) : skillData.prof === 'half' ? (
+                        <span className="text-sky-800 font-bold text-[10px] bg-sky-100 px-1 rounded border border-sky-300">
+                          ½
+                        </span>
                       ) : (
                         <span className="text-stone-300 text-xs">○</span>
                       )}
@@ -141,8 +158,74 @@ export const SkillsSection: React.FC = () => {
                   </td>
 
                   {/* Advantage */}
-                  <td className="text-center text-stone-400 text-xs py-1">
-                    —
+                  <td className="text-center text-xs py-1">
+                    {skillData.adv ? (
+                      <div className="inline-flex items-center justify-center">
+                        {skillData.advNote ? (
+                          <Tooltip
+                            content={
+                              <div className="space-y-1 max-w-xs text-left">
+                                <p className="font-fantasy font-bold text-emerald-300 text-xs">
+                                  {label} Advantage
+                                </p>
+                                <p className="text-xs text-slate-200 whitespace-pre-wrap">
+                                  {skillData.advNote}
+                                </p>
+                              </div>
+                            }
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setAdvantageModalSkill({
+                                  key,
+                                  label,
+                                  adv: true,
+                                  note: skillData.advNote || '',
+                                })
+                              }
+                              className="inline-flex items-center gap-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-1 py-0.5 rounded text-[9px] hover:bg-emerald-200 transition-colors shadow-xs"
+                              title="Advantage Active (click to edit note)"
+                            >
+                              ADV
+                              <span className="text-[10px]">📝</span>
+                            </button>
+                          </Tooltip>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setAdvantageModalSkill({
+                                key,
+                                label,
+                                adv: true,
+                                note: '',
+                              })
+                            }
+                            className="bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold px-1 py-0.5 rounded text-[9px] hover:bg-emerald-200 transition-colors shadow-xs"
+                            title="Advantage Active (click to edit)"
+                          >
+                            ADV
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAdvantageModalSkill({
+                            key,
+                            label,
+                            adv: false,
+                            note: skillData.advNote || '',
+                          })
+                        }
+                        className="text-stone-300 hover:text-stone-600 hover:bg-stone-100 px-1.5 py-0.5 rounded text-xs transition-colors"
+                        title="Click to set Advantage & notes"
+                      >
+                        —
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -272,6 +355,21 @@ export const SkillsSection: React.FC = () => {
           isOpen={!!selectedSense}
           onClose={() => setSelectedSense(null)}
           senseKey={selectedSense}
+        />
+      )}
+
+      {/* Skill Advantage Modal */}
+      {advantageModalSkill && (
+        <SkillAdvantageModal
+          isOpen={!!advantageModalSkill}
+          onClose={() => setAdvantageModalSkill(null)}
+          skillKey={advantageModalSkill.key}
+          skillLabel={advantageModalSkill.label}
+          initialAdv={advantageModalSkill.adv}
+          initialNote={advantageModalSkill.note}
+          onSave={(key, adv, note) => {
+            updateSkillAdvantage(key, adv, note);
+          }}
         />
       )}
     </div>

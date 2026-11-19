@@ -15,16 +15,28 @@ import { BackSheetView } from './components/inventory/BackSheetView';
 import { ReferenceView } from './components/reference/ReferenceView';
 import { NotesView } from './components/notes/NotesView';
 import { SaveLoadModal } from './components/modals/SaveLoadModal';
+import { PrintModal } from './components/modals/PrintModal';
 import { PrintDocument } from './components/print/PrintDocument';
+import { PrintSettings } from './types/character';
 
 const SheetContainer: React.FC = () => {
-  const { character } = useCharacter();
+  const { character, updateCharacter } = useCharacter();
   const [currentView, setCurrentView] = useState<'sheet' | 'spells' | 'back' | 'notes' | 'reference'>('sheet');
   const [isMasterSpellsOpen, setIsMasterSpellsOpen] = useState(false);
   const [masterSpellInitialLevel, setMasterSpellInitialLevel] = useState<number | 'all'>('all');
   const [isCustomSpellOpen, setIsCustomSpellOpen] = useState(false);
   const [isSaveLoadOpen, setIsSaveLoadOpen] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<'save' | 'load'>('save');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printSettings, setPrintSettings] = useState<PrintSettings>(() => {
+    return (
+      character.printSettings || {
+        paperSize: 'letter',
+        colorMode: 'color',
+        scope: 'all',
+      }
+    );
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -32,7 +44,16 @@ const SheetContainer: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    setIsPrintModalOpen(true);
+  };
+
+  const executePrint = () => {
+    document.body.classList.remove('paper-letter', 'paper-a4');
+    document.body.classList.add(printSettings.paperSize === 'a4' ? 'paper-a4' : 'paper-letter');
+
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   useEffect(() => {
@@ -197,6 +218,21 @@ const SheetContainer: React.FC = () => {
           onToast={showToast}
         />
 
+        {/* Print & PDF Export Modal */}
+        <PrintModal
+          isOpen={isPrintModalOpen}
+          onClose={() => setIsPrintModalOpen(false)}
+          settings={printSettings}
+          onUpdateSettings={(newSettings) => {
+            setPrintSettings(newSettings);
+            updateCharacter((prev) => ({
+              ...prev,
+              printSettings: newSettings,
+            }));
+          }}
+          onExecutePrint={executePrint}
+        />
+
         {/* Toast Notification */}
         {toastMessage && (
           <div className="fixed bottom-5 right-5 z-50 bg-stone-900/95 text-white px-4 py-2.5 rounded-lg shadow-xl border border-stone-700 text-xs font-semibold flex items-center gap-2 animate-bounce-short">
@@ -208,7 +244,7 @@ const SheetContainer: React.FC = () => {
 
       {/* Print Document (Hidden on screen, rendered only during native PDF / paper print) */}
       <div className="hidden print:block w-full bg-white">
-        <PrintDocument />
+        <PrintDocument settings={printSettings} />
       </div>
     </div>
   );

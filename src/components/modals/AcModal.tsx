@@ -215,54 +215,6 @@ export const AcModal: React.FC<AcModalProps> = ({
             </p>
           </div>
 
-          {/* Common Quick Chips */}
-          <div className="pt-1 border-t border-stone-200">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-1.5">
-              Quick Suggestions
-            </span>
-            <div className="flex flex-wrap gap-1.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setBonusInput('+1');
-                  setNoteInput('Ring of Protection (+1 to AC and saving throws).');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Ring of Protection
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setBonusInput('+1');
-                  setNoteInput('Defense Fighting Style (+1 bonus to AC while wearing armor).');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Defense Style
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setBonusInput('+2');
-                  setNoteInput('Shield of Faith (+2 bonus to AC, concentration).');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +2 Shield of Faith
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNoteInput('Reaction: Shield spell grants +5 AC until start of next turn.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                Shield Spell (Reaction)
-              </button>
-            </div>
-          </div>
-
           {/* Modal Footer Buttons */}
           <div className="pt-3 border-t border-stone-200 flex items-center justify-between gap-2">
             <button

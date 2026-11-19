@@ -66,6 +66,12 @@ const SheetContainer: React.FC = () => {
     return saved ? parseFloat(saved) : 1.15;
   });
 
+  // Dynamic browser tab title: D&D Dash - [Character Name]
+  useEffect(() => {
+    const charName = character.name?.trim();
+    document.title = charName ? `D&D Dash - ${charName}` : 'D&D Dash';
+  }, [character.name]);
+
   const handleSetZoom = (newZoom: number) => {
     const clamped = Math.round(Math.max(0.7, Math.min(1.6, newZoom)) * 100) / 100;
     setZoomLevel(clamped);
@@ -88,6 +94,7 @@ const SheetContainer: React.FC = () => {
             setCurrentView={setCurrentView}
             zoomLevel={zoomLevel}
             onSetZoom={handleSetZoom}
+            onOpenSaveLoadModal={() => setIsSaveLoadOpen(true)}
             onOpenSaveModal={() => {
               setSaveLoadMode('save');
               setIsSaveLoadOpen(true);

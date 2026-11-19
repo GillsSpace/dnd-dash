@@ -187,59 +187,6 @@ export const SpellBonusModal: React.FC<SpellBonusModalProps> = ({
             </p>
           </div>
 
-          {/* Common Quick Suggestions */}
-          <div className="pt-1 border-t border-stone-200">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-1.5">
-              Quick Suggestions
-            </span>
-            <div className="flex flex-wrap gap-1.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setDcBonusInput('+1');
-                  setAtkBonusInput('+1');
-                  setNoteInput('Rod of the Pact Keeper +1: +1 to spell save DC and spell attack rolls.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Rod of the Pact Keeper
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDcBonusInput('');
-                  setAtkBonusInput('+1');
-                  setNoteInput('Wand of the War Mage +1: +1 to spell attack rolls and ignores half cover.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Wand of the War Mage
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDcBonusInput('+1');
-                  setAtkBonusInput('+1');
-                  setNoteInput('Moon Sickle +1: +1 to spell save DC, spell attack rolls, and +1d4 healing.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Moon Sickle
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDcBonusInput('+1');
-                  setAtkBonusInput('+1');
-                  setNoteInput('Arcane Grimoire / Bloodwell Vial +1: +1 bonus to spell DC and spell attacks.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Arcane Focus
-              </button>
-            </div>
-          </div>
-
           {/* Modal Footer Buttons */}
           <div className="pt-3 border-t border-stone-200 flex items-center justify-between gap-2">
             <button

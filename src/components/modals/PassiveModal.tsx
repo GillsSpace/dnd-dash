@@ -10,64 +10,18 @@ interface PassiveModalProps {
   senseKey: PassiveSenseKey;
 }
 
-const SENSE_META: Record<PassiveSenseKey, { title: string; skillName: string; defaultSuggestions: { label: string; bonus: string; note: string }[] }> = {
+const SENSE_META: Record<PassiveSenseKey, { title: string; skillName: string }> = {
   perception: {
     title: 'Passive Perception',
     skillName: 'Perception (Wis)',
-    defaultSuggestions: [
-      {
-        label: 'Advantage on Perception (+5)',
-        bonus: '+5',
-        note: 'Advantage on Perception rolls grants +5 to Passive Perception (Sentinel Shield, Keen Senses, etc.).',
-      },
-      {
-        label: 'Observant Feat (+5)',
-        bonus: '+5',
-        note: 'Observant Feat: +5 bonus to Passive Perception.',
-      },
-      {
-        label: 'Disadvantage on Perception (-5)',
-        bonus: '-5',
-        note: 'Disadvantage on Perception (Dim light / lightly obscured) imposes -5 penalty to Passive Perception.',
-      },
-    ],
   },
   insight: {
     title: 'Passive Insight',
     skillName: 'Insight (Wis)',
-    defaultSuggestions: [
-      {
-        label: 'Advantage on Insight (+5)',
-        bonus: '+5',
-        note: 'Advantage on Insight rolls grants +5 to Passive Insight.',
-      },
-      {
-        label: 'Observant Feat (+5)',
-        bonus: '+5',
-        note: 'Observant Feat: +5 bonus to Passive Insight.',
-      },
-    ],
   },
   investigation: {
     title: 'Passive Investigation',
     skillName: 'Investigation (Int)',
-    defaultSuggestions: [
-      {
-        label: 'Advantage on Investigation (+5)',
-        bonus: '+5',
-        note: 'Advantage on Investigation rolls grants +5 to Passive Investigation.',
-      },
-      {
-        label: 'Observant Feat (+5)',
-        bonus: '+5',
-        note: 'Observant Feat: +5 bonus to Passive Investigation.',
-      },
-      {
-        label: 'Dungeon Delver (+5)',
-        bonus: '+5',
-        note: 'Dungeon Delver: +5 bonus to Passive Perception and Investigation to detect secret doors.',
-      },
-    ],
   },
 };
 
@@ -214,28 +168,6 @@ export const PassiveModal: React.FC<PassiveModalProps> = ({
             <p className="text-[11px] text-stone-500">
               When saved, this note appears as a tooltip when hovering over this passive score row.
             </p>
-          </div>
-
-          {/* Quick Suggestions */}
-          <div className="pt-1 border-t border-stone-200">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-1.5">
-              Quick Suggestions
-            </span>
-            <div className="flex flex-wrap gap-1.5 text-[11px]">
-              {meta.defaultSuggestions.map((sug, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setBonusInput(sug.bonus);
-                    setNoteInput(sug.note);
-                  }}
-                  className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-                >
-                  {sug.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Modal Footer Buttons */}

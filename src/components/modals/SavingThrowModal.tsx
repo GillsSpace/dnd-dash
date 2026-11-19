@@ -152,36 +152,6 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSave} className="p-4 space-y-4 text-xs overflow-y-auto">
-          {/* Quick Summary Preview Grid */}
-          <div className="bg-white border border-stone-300 rounded-lg p-2.5 shadow-2xs">
-            <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider block mb-1.5">
-              Live Saves Preview
-            </span>
-            <div className="grid grid-cols-6 gap-1.5 text-center">
-              {STATS.map(({ key, label }) => {
-                const total = calculateSave(key);
-                const hasNote = !!statNotes[key] || !!globalNoteInput;
-                return (
-                  <div
-                    key={key}
-                    onClick={() => setActiveTab(key)}
-                    className={`p-1.5 rounded border cursor-pointer transition-colors ${
-                      activeTab === key
-                        ? 'border-[#1f4e78] bg-blue-50 font-bold'
-                        : 'border-stone-200 hover:bg-stone-50'
-                    }`}
-                  >
-                    <div className="text-[10px] text-stone-500">{label}</div>
-                    <div className="font-mono text-sm font-bold text-stone-900">
-                      {total >= 0 ? `+${total}` : total}
-                    </div>
-                    {hasNote && <div className="text-[9px] text-amber-700 font-bold">📝</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Section 1: Global Save Modifier & Note */}
           <div className="space-y-2 bg-stone-50 p-2.5 rounded border border-stone-200">
             <div className="flex items-center justify-between">
@@ -202,7 +172,7 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
                   value={globalBonusInput}
                   onChange={(e) => setGlobalBonusInput(e.target.value)}
                   placeholder="+0"
-                  className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 font-mono font-bold text-xs"
+                  className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 font-mono font-bold text-xs text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#1f4e78]"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -212,7 +182,7 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
                   value={globalNoteInput}
                   onChange={(e) => setGlobalNoteInput(e.target.value)}
                   placeholder="e.g. Ring of Protection (+1 to all saves)"
-                  className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 text-xs"
+                  className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 text-xs text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#1f4e78]"
                 />
               </div>
             </div>
@@ -222,32 +192,49 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-bold text-stone-800 text-xs">
-                Specific Ability Modifiers &amp; Tactical Notes
+                Ability-Specific Modifiers &amp; Notes
+              </span>
+              <span className="text-[10px] text-stone-500">
+                Click an ability card below to configure
               </span>
             </div>
 
-            {/* Stat Tabs */}
-            <div className="flex border-b border-stone-300 gap-1">
-              {STATS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setActiveTab(key)}
-                  className={`px-3 py-1 font-bold text-xs rounded-t transition-colors ${
-                    activeTab === key
-                      ? 'bg-white border-t border-x border-stone-300 text-[#1f4e78] -mb-px'
-                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                  }`}
-                >
-                  {label}
-                  {statNotes[key] && ' •'}
-                </button>
-              ))}
+            {/* Single Unified Ability Selector with Live Saves Preview */}
+            <div className="grid grid-cols-6 gap-1.5 text-center">
+              {STATS.map(({ key, label }) => {
+                const total = calculateSave(key);
+                const hasNote = !!statNotes[key];
+                const hasBonus = !!statBonuses[key] && parseNumber(statBonuses[key]) !== 0;
+                const isSelected = activeTab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveTab(key)}
+                    className={`p-1.5 rounded border transition-all text-center ${
+                      isSelected
+                        ? 'border-[#1f4e78] bg-blue-50/90 ring-1 ring-[#1f4e78] shadow-xs'
+                        : 'border-stone-300 bg-white hover:bg-stone-50 text-stone-700'
+                    }`}
+                  >
+                    <div className={`text-[10px] font-bold ${isSelected ? 'text-[#1f4e78]' : 'text-stone-500'}`}>
+                      {label}
+                    </div>
+                    <div className="font-mono text-sm font-bold text-stone-900 mt-0.5">
+                      {total >= 0 ? `+${total}` : total}
+                    </div>
+                    <div className="h-3 flex items-center justify-center gap-0.5 mt-0.5">
+                      {hasBonus && <span className="text-[9px] font-bold text-[#1f4e78] leading-none">•</span>}
+                      {hasNote && <span className="text-[9px] leading-none" title="Has custom note">📝</span>}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Active Stat Inputs */}
-            <div className="bg-white border border-stone-300 border-t-0 p-3 rounded-b space-y-2.5">
-              <div className="flex items-center justify-between">
+            {/* Active Stat Editor Box */}
+            <div className="bg-white border border-stone-300 rounded-lg p-3 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between pb-1.5 border-b border-stone-200">
                 <span className="font-bold text-[#1f4e78] text-xs">
                   {STATS.find((s) => s.key === activeTab)?.full} Saving Throw
                 </span>
@@ -266,7 +253,7 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
                       setStatBonuses({ ...statBonuses, [activeTab]: e.target.value })
                     }
                     placeholder="+0"
-                    className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 font-mono font-bold text-xs"
+                    className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 font-mono font-bold text-xs text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#1f4e78]"
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -278,64 +265,10 @@ export const SavingThrowModal: React.FC<SavingThrowModalProps> = ({
                       setStatNotes({ ...statNotes, [activeTab]: e.target.value })
                     }
                     placeholder="e.g. Advantage on DEX saves vs effects you can see (Danger Sense)"
-                    className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 text-xs"
+                    className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 text-xs text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#1f4e78]"
                   />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Quick Suggestions */}
-          <div className="pt-1 border-t border-stone-200">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-1.5">
-              Quick Suggestions
-            </span>
-            <div className="flex flex-wrap gap-1.5 text-[11px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setGlobalBonusInput('+1');
-                  setGlobalNoteInput('Ring / Cloak of Protection (+1 to all saving throws).');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                +1 Ring of Protection (Global)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('dex');
-                  setStatNotes({
-                    ...statNotes,
-                    dex: 'Advantage on Dexterity saving throws against effects you can see (Danger Sense).',
-                  });
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                Danger Sense (DEX Advantage)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('con');
-                  setStatNotes({
-                    ...statNotes,
-                    con: 'Advantage on saving throws against poison (Dwarven Resilience / Stout).',
-                  });
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                Poison Resilience (CON)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setGlobalNoteInput('Gnome Cunning: Advantage on all Intelligence, Wisdom, and Charisma saves against magic.');
-                }}
-                className="px-2 py-0.5 rounded bg-stone-200/80 hover:bg-stone-300 text-stone-700 transition-colors"
-              >
-                Gnome Cunning (Adv vs Magic)
-              </button>
             </div>
           </div>
 

@@ -52,9 +52,11 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
       setMode(initialMode);
       setShowCopyPrompt(false);
       setError(null);
+      const fallbackName = `${(character.name || 'character').trim().replace(/\s+/g, '_')}_sheet.json`;
       const defaultName =
-        currentSaveFilename ||
-        `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
+        currentSaveFilename && !currentSaveFilename.endsWith('_5e_2024.json')
+          ? currentSaveFilename
+          : fallbackName;
       setTargetFilename(defaultName.endsWith('.json') ? defaultName : `${defaultName}.json`);
       setCopyName(`${character.name || 'Character'} (Copy)`);
     }
@@ -80,7 +82,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
   const handleSaveAsCopy = () => {
     if (!copyName.trim()) return;
     const cleanName = copyName.trim();
-    const copyFilename = `${cleanName.replace(/\s+/g, '_')}_5e_2024.json`;
+    const copyFilename = `${cleanName.replace(/\s+/g, '_')}_sheet.json`;
 
     // Duplicate character in state with new name and new ID
     updateCharacter((prev) => ({

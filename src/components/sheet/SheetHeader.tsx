@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
-import { Download, Upload, Sunrise, Moon, Sparkles, BookOpen, HelpCircle, StickyNote, User, Shield, Printer } from 'lucide-react';
+import { FolderOpen, Download, Upload, Sunrise, Moon, Sparkles, BookOpen, HelpCircle, StickyNote, User, Shield, Printer } from 'lucide-react';
 import { Tooltip } from '../common/Tooltip';
 import { getAppearanceColorStyle } from '../../utils/colorHelper';
 
@@ -12,8 +12,9 @@ export const SheetHeader: React.FC<{
   onSetZoom?: (z: number) => void;
   onOpenSaveModal?: () => void;
   onOpenLoadModal?: () => void;
+  onOpenSaveLoadModal?: () => void;
   onPrint?: () => void;
-}> = ({ onOpenMasterSpells, currentView, setCurrentView, zoomLevel, onSetZoom, onOpenSaveModal, onOpenLoadModal, onPrint }) => {
+}> = ({ onOpenMasterSpells, currentView, setCurrentView, zoomLevel, onSetZoom, onOpenSaveModal, onOpenLoadModal, onOpenSaveLoadModal, onPrint }) => {
   const { character, updateCharacter, exportCharacterJson, importCharacterJson, shortRest, longRest } =
     useCharacter();
 
@@ -116,30 +117,16 @@ export const SheetHeader: React.FC<{
               </div>
             )}
 
-            {/* File Operations (Save/Load) */}
+            {/* File Operations (Save/Load & Print) */}
             <div className="flex items-center gap-1 bg-stone-200/80 p-0.5 rounded border border-stone-300 shadow-2xs">
-              <Tooltip content="Save character sheet to project saves folder or computer (Ctrl + S).">
+              <Tooltip content="Open Save / Load character sheets dialog (Ctrl + S).">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (onOpenSaveModal) onOpenSaveModal();
-                    else exportCharacterJson();
-                  }}
+                  onClick={onOpenSaveLoadModal || onOpenSaveModal || onOpenLoadModal}
                   className="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-900 border border-stone-300/80 font-medium transition-colors text-xs shadow-2xs"
                 >
-                  <Download className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Save JSON</span>
-                </button>
-              </Tooltip>
-
-              <Tooltip content="Load character sheet from project saves folder or computer.">
-                <button
-                  type="button"
-                  onClick={onOpenLoadModal}
-                  className="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-900 border border-stone-300/80 font-medium transition-colors text-xs shadow-2xs"
-                >
-                  <Upload className="w-3.5 h-3.5 text-blue-700" />
-                  <span>Load JSON</span>
+                  <FolderOpen className="w-3.5 h-3.5 text-[#1f4e78]" />
+                  <span>Save / Load</span>
                 </button>
               </Tooltip>
 

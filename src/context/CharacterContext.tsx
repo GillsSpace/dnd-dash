@@ -1402,8 +1402,9 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const exportCharacterJson = (customFilename?: string) => {
     const rawName =
       customFilename ||
-      currentSaveFilename ||
-      `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
+      (currentSaveFilename && !currentSaveFilename.endsWith('_5e_2024.json')
+        ? currentSaveFilename
+        : `${(character.name || 'character').trim().replace(/\s+/g, '_')}_sheet.json`);
     const finalName = rawName.endsWith('.json') ? rawName : `${rawName}.json`;
     const dataStr =
       'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(character, null, 2));
@@ -1448,8 +1449,9 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const saveToFileSystemPicker = async (customFilename?: string): Promise<boolean> => {
     const rawName =
       customFilename ||
-      currentSaveFilename ||
-      `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
+      (currentSaveFilename && !currentSaveFilename.endsWith('_5e_2024.json')
+        ? currentSaveFilename
+        : `${(character.name || 'character').trim().replace(/\s+/g, '_')}_sheet.json`);
     const suggestedName = rawName.endsWith('.json') ? rawName : `${rawName}.json`;
     if ('showSaveFilePicker' in window) {
       try {

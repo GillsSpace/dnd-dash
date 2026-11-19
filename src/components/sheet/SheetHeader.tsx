@@ -121,7 +121,10 @@ export const SheetHeader: React.FC<{
               <Tooltip content="Save character sheet to project saves folder or computer (Ctrl + S).">
                 <button
                   type="button"
-                  onClick={onOpenSaveModal || exportCharacterJson}
+                  onClick={() => {
+                    if (onOpenSaveModal) onOpenSaveModal();
+                    else exportCharacterJson();
+                  }}
                   className="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-white hover:bg-stone-100 text-stone-700 hover:text-stone-900 border border-stone-300/80 font-medium transition-colors text-xs shadow-2xs"
                 >
                   <Download className="w-3.5 h-3.5 text-emerald-700" />

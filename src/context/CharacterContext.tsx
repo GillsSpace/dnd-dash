@@ -83,16 +83,14 @@ interface CharacterContextType {
   longRest: () => void;
   // Custom spell & JSON
   addCustomSpell: (spell: Omit<Spell, 'id'>) => void;
-  exportCharacterJson: () => void;
+  exportCharacterJson: (customFilename?: string) => void;
   importCharacterJson: (jsonString: string) => boolean;
   resetToTemplate: () => void;
   createNewCharacter: () => void;
-  // Project Saves Folder & File System Access API
+  // File Management & Storage
   currentSaveFilename: string;
   setCurrentSaveFilename: (name: string) => void;
-  saveToProjectSaves: (filename: string) => Promise<boolean>;
-  loadFromProjectSaves: (filename: string) => Promise<boolean>;
-  saveToFileSystemPicker: () => Promise<boolean>;
+  saveToFileSystemPicker: (customFilename?: string) => Promise<boolean>;
   loadFromFileSystemPicker: () => Promise<boolean>;
   // Formulas
   getAbilityMod: (key: AbilityKey) => number;
@@ -208,6 +206,24 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       localStorage.setItem('dnd_current_save_filename', currentSaveFilename);
     }
   }, [currentSaveFilename]);
+
+  // Synchronize initiative dynamically with Dexterity modifier and Alert feat
+  useEffect(() => {
+    const dexScore = character.abilities?.dex?.score ?? 10;
+    const dexMod = Math.floor((dexScore - 10) / 2);
+    const hasAlert = (character.features || []).some(
+      (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
+    );
+    const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
+    const expectedInit = dexMod + alertBonus;
+
+    if (character.initiative !== expectedInit) {
+      setCharacter((prev) => ({
+        ...prev,
+        initiative: expectedInit,
+      }));
+    }
+  }, [character.abilities?.dex?.score, character.proficiencyBonus, character.features, character.initiative]);
 
   // Ensure multiclass Hit Dice pools are always present and synchronized with classes
   useEffect(() => {
@@ -392,6 +408,10 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const dexScore = key === 'dex' ? newScore : (prev.abilities.dex?.score ?? 10);
       const dexMod = Math.floor((dexScore - 10) / 2);
       const newAc = calculateArmorClass(prev.armorWorn, dexMod);
+      const hasAlert = (prev.features || []).some(
+        (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
+      );
+      const alertBonus = hasAlert ? (prev.proficiencyBonus || 2) : 0;
 
       return {
         ...prev,
@@ -399,6 +419,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         baseStatsLocked: false,
         abilities: updatedAbilities,
         armorClass: newAc,
+        initiative: dexMod + alertBonus,
       };
     });
   };
@@ -1301,15 +1322,17 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     togglePreparedSpell(newSpell.name);
   };
 
-  const exportCharacterJson = () => {
+  const exportCharacterJson = (customFilename?: string) => {
+    const rawName =
+      customFilename ||
+      currentSaveFilename ||
+      `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
+    const finalName = rawName.endsWith('.json') ? rawName : `${rawName}.json`;
     const dataStr =
       'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(character, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute(
-      'download',
-      `${character.name.replace(/\s+/g, '_')}_Character_Sheet.json`
-    );
+    downloadAnchor.setAttribute('download', finalName);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -1345,46 +1368,12 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem(STORAGE_KEY_CHAR, JSON.stringify(initialCharacter));
   };
 
-  const saveToProjectSaves = async (filename: string): Promise<boolean> => {
-    try {
-      const res = await fetch('/api/saves', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename, data: character }),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.filename) {
-          setCurrentSaveFilename(json.filename);
-        }
-        return true;
-      }
-    } catch (e) {
-      console.error('Failed to save to project saves folder', e);
-    }
-    return false;
-  };
-
-  const loadFromProjectSaves = async (filename: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`/api/saves?file=${encodeURIComponent(filename)}`);
-      if (res.ok) {
-        const charData = await res.json();
-        if (charData && charData.name && charData.abilities) {
-          setCharacter(charData);
-          syncCustomSpellsFromCharacter(charData);
-          setCurrentSaveFilename(filename);
-          return true;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load from project saves folder', e);
-    }
-    return false;
-  };
-
-  const saveToFileSystemPicker = async (): Promise<boolean> => {
-    const suggestedName = currentSaveFilename || `${character.name.replace(/\s+/g, '_')}_5e_2024.json`;
+  const saveToFileSystemPicker = async (customFilename?: string): Promise<boolean> => {
+    const rawName =
+      customFilename ||
+      currentSaveFilename ||
+      `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
+    const suggestedName = rawName.endsWith('.json') ? rawName : `${rawName}.json`;
     if ('showSaveFilePicker' in window) {
       try {
         const handle = await (window as any).showSaveFilePicker({
@@ -1410,7 +1399,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return false;
       }
     } else {
-      exportCharacterJson();
+      exportCharacterJson(suggestedName);
       return true;
     }
   };
@@ -1505,8 +1494,6 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createNewCharacter,
         currentSaveFilename,
         setCurrentSaveFilename,
-        saveToProjectSaves,
-        loadFromProjectSaves,
         saveToFileSystemPicker,
         loadFromFileSystemPicker,
         getAbilityMod,

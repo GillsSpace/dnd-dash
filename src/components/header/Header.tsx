@@ -130,7 +130,7 @@ export const Header: React.FC<{ onOpenMasterSpells: () => void }> = ({ onOpenMas
           {/* Export JSON */}
           <Tooltip content="Export character state to a JSON file for backup or sharing.">
             <button
-              onClick={exportCharacterJson}
+              onClick={() => exportCharacterJson()}
               className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
               aria-label="Export Character"
             >

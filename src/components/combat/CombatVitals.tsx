@@ -7,6 +7,12 @@ export const CombatVitals: React.FC = () => {
   const { character, updateCharacter, getAbilityMod } = useCharacter();
   const dexMod = getAbilityMod('dex');
 
+  const hasAlert = (character.features || []).some(
+    (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
+  );
+  const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
+  const effectiveInitiative = dexMod + alertBonus;
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
       {/* Armor Class */}
@@ -38,9 +44,9 @@ export const CombatVitals: React.FC = () => {
       <Tooltip
         content={
           <div className="space-y-1">
-            <p className="font-fantasy font-bold text-amber-300">Initiative: {character.initiative >= 0 ? `+${character.initiative}` : character.initiative}</p>
+            <p className="font-fantasy font-bold text-amber-300">Initiative: {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}</p>
             <p className="text-[11px] text-slate-300">
-              Calculated from your Dexterity modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod}).
+              Calculated from your Dexterity modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod}){hasAlert ? ` + Alert feat (+${alertBonus})` : ''}.
             </p>
             <p className="text-[10px] text-slate-400">Rolled at the start of combat for turn order.</p>
           </div>
@@ -55,7 +61,7 @@ export const CombatVitals: React.FC = () => {
               Initiative
             </span>
             <span className="font-mono text-xl font-bold text-amber-300">
-              {character.initiative >= 0 ? `+${character.initiative}` : character.initiative}
+              {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}
             </span>
           </div>
         </div>

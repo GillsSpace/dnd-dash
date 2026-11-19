@@ -18,7 +18,7 @@ import { SaveLoadModal } from './components/modals/SaveLoadModal';
 import { PrintDocument } from './components/print/PrintDocument';
 
 const SheetContainer: React.FC = () => {
-  const { character, currentSaveFilename, saveToProjectSaves } = useCharacter();
+  const { character } = useCharacter();
   const [currentView, setCurrentView] = useState<'sheet' | 'spells' | 'back' | 'notes' | 'reference'>('sheet');
   const [isMasterSpellsOpen, setIsMasterSpellsOpen] = useState(false);
   const [masterSpellInitialLevel, setMasterSpellInitialLevel] = useState<number | 'all'>('all');
@@ -45,20 +45,11 @@ const SheetContainer: React.FC = () => {
 
   // Global Ctrl + S / Cmd + S (Save JSON) & Ctrl + P / Cmd + P (Print / PDF)
   useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        const filename =
-          currentSaveFilename ||
-          `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
-        const finalName = filename.endsWith('.json') ? filename : `${filename}.json`;
-        const success = await saveToProjectSaves(finalName);
-        if (success) {
-          showToast(`✓ Character saved to saves/${finalName}`);
-        } else {
-          setSaveLoadMode('save');
-          setIsSaveLoadOpen(true);
-        }
+        setSaveLoadMode('save');
+        setIsSaveLoadOpen(true);
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         handlePrint();
@@ -67,7 +58,7 @@ const SheetContainer: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [character, currentSaveFilename, saveToProjectSaves]);
+  }, []);
 
   // Page scaling defaulting to 115% (+15% scale)
   const [zoomLevel, setZoomLevel] = useState<number>(() => {

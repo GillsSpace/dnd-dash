@@ -174,12 +174,24 @@ export const CombatSection: React.FC = () => {
               INITIATIVE
             </div>
             <div className="p-2 flex flex-col items-center justify-center flex-1">
-              <div className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm">
-                {character.initiative >= 0 ? `+${character.initiative}` : character.initiative}
-              </div>
-              <span className="text-[10px] text-stone-500 mt-1 font-mono text-center">
-                = DEX Modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
-              </span>
+              {(() => {
+                const hasAlert = (character.features || []).some(
+                  (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
+                );
+                const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
+                const effectiveInitiative = dexMod + alertBonus;
+                return (
+                  <>
+                    <div className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm">
+                      {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}
+                    </div>
+                    <span className="text-[10px] text-stone-500 mt-1 font-mono text-center">
+                      = DEX Modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
+                      {hasAlert ? ` + Alert (+${alertBonus})` : ''}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
             <div className="bg-stone-100 border-t border-stone-300 text-[10px] text-stone-600 py-0.5 px-1 truncate text-center">
               Bonus to Initiative rolls

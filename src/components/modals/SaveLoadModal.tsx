@@ -2,32 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import {
   Folder,
-  FileText,
   Download,
   Upload,
-  Trash2,
   X,
-  RefreshCw,
   FolderOpen,
   CheckCircle,
   AlertCircle,
-  Clock,
   HardDrive,
   UserPlus,
   Sparkles,
+  Copy,
+  FileCheck,
 } from 'lucide-react';
-
-interface SaveFileInfo {
-  filename: string;
-  size: number;
-  mtime: string;
-  meta?: {
-    name?: string;
-    level?: number;
-    race?: string;
-    classes?: string;
-  } | null;
-}
 
 interface SaveLoadModalProps {
   isOpen: boolean;
@@ -44,130 +30,79 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
 }) => {
   const {
     character,
+    updateCharacter,
     currentSaveFilename,
-    saveToProjectSaves,
-    loadFromProjectSaves,
+    setCurrentSaveFilename,
     saveToFileSystemPicker,
     loadFromFileSystemPicker,
+    exportCharacterJson,
     importCharacterJson,
     createNewCharacter,
   } = useCharacter();
 
   const [mode, setMode] = useState<'save' | 'load'>(initialMode);
-  const [saveFiles, setSaveFiles] = useState<SaveFileInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isStaticHost, setIsStaticHost] = useState(false);
-
-  // Filename input state in save mode
   const [targetFilename, setTargetFilename] = useState<string>('');
+  const [copyName, setCopyName] = useState<string>('');
+  const [showCopyPrompt, setShowCopyPrompt] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
+      setShowCopyPrompt(false);
+      setError(null);
       const defaultName =
         currentSaveFilename ||
         `${(character.name || 'character').replace(/\s+/g, '_')}_5e_2024.json`;
       setTargetFilename(defaultName.endsWith('.json') ? defaultName : `${defaultName}.json`);
-      fetchSaves();
+      setCopyName(`${character.name || 'Character'} (Copy)`);
     }
-  }, [isOpen, initialMode]);
+  }, [isOpen, initialMode, character.name, currentSaveFilename]);
 
-  const fetchSaves = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/saves');
-      if (res.ok) {
-        const data = await res.json();
-        setSaveFiles(data);
-        setIsStaticHost(false);
-      } else {
-        setIsStaticHost(true);
-      }
-    } catch {
-      setIsStaticHost(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveToProject = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleDownload = async () => {
     if (!targetFilename.trim()) return;
-
     const finalName = targetFilename.trim().endsWith('.json')
       ? targetFilename.trim()
       : `${targetFilename.trim()}.json`;
 
     setLoading(true);
-    const success = await saveToProjectSaves(finalName);
+    setCurrentSaveFilename(finalName);
+    const success = await saveToFileSystemPicker(finalName);
     setLoading(false);
 
     if (success) {
-      if (onToast) onToast(`Saved to saves/${finalName}`);
+      if (onToast) onToast(`Saved ${finalName} to your device`);
       onClose();
-    } else {
-      setError(`Failed to save to ${finalName}. Please check folder permissions.`);
     }
   };
 
-  const handleLoadFromProject = async (filename: string) => {
-    setLoading(true);
-    const success = await loadFromProjectSaves(filename);
-    setLoading(false);
+  const handleSaveAsCopy = () => {
+    if (!copyName.trim()) return;
+    const cleanName = copyName.trim();
+    const copyFilename = `${cleanName.replace(/\s+/g, '_')}_5e_2024.json`;
 
-    if (success) {
-      if (onToast) onToast(`Loaded ${filename}`);
-      onClose();
-    } else {
-      setError(`Failed to load ${filename}. Invalid or corrupted JSON.`);
-    }
-  };
+    // Duplicate character in state with new name and new ID
+    updateCharacter((prev) => ({
+      ...prev,
+      id: `char-${Date.now()}`,
+      name: cleanName,
+    }));
 
-  const handleDeleteSave = async (filename: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!window.confirm(`Permanently delete "${filename}" from project saves folder?`)) {
-      return;
-    }
+    setCurrentSaveFilename(copyFilename);
+    exportCharacterJson(copyFilename);
 
-    try {
-      const res = await fetch(`/api/saves?file=${encodeURIComponent(filename)}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setSaveFiles((prev) => prev.filter((f) => f.filename !== filename));
-        if (onToast) onToast(`Deleted ${filename}`);
-      }
-    } catch (e) {
-      setError(`Could not delete ${filename}.`);
-    }
-  };
-
-  const handleNativeSave = async () => {
-    const success = await saveToFileSystemPicker();
-    if (success) {
-      if (onToast) onToast('Saved to selected location on computer');
-      onClose();
-    }
+    if (onToast) onToast(`Created copy: "${cleanName}"`);
+    setShowCopyPrompt(false);
+    onClose();
   };
 
   const handleNativeLoad = async () => {
+    setLoading(true);
     const success = await loadFromFileSystemPicker();
+    setLoading(false);
     if (success) {
-      if (onToast) onToast('Loaded character from computer file');
-      onClose();
-    }
-  };
-
-  const handleCreateNewCharacter = () => {
-    if (
-      window.confirm(
-        'Create a new blank character sheet? Any unsaved changes on your current character will be replaced.'
-      )
-    ) {
-      createNewCharacter();
-      if (onToast) onToast('Created new blank character sheet');
+      if (onToast) onToast('Loaded character from device file');
       onClose();
     }
   };
@@ -181,10 +116,11 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
         if (content) {
           const success = importCharacterJson(content);
           if (success) {
+            setCurrentSaveFilename(file.name);
             if (onToast) onToast(`Loaded ${file.name}`);
             onClose();
           } else {
-            alert('Invalid character JSON format.');
+            setError('Invalid character JSON format. Please select a valid DnD Dash character file.');
           }
         }
       };
@@ -192,20 +128,28 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
     }
   };
 
+  const handleCreateNewCharacter = () => {
+    if (
+      window.confirm(
+        'Start a new blank character sheet? Any unsaved edits to your current sheet will be replaced.'
+      )
+    ) {
+      createNewCharacter();
+      if (onToast) onToast('Created new blank character sheet');
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
-  const willOverwrite =
-    mode === 'save' &&
-    saveFiles.some(
-      (f) =>
-        f.filename.toLowerCase() ===
-        (targetFilename.endsWith('.json') ? targetFilename : `${targetFilename}.json`).toLowerCase()
-    );
+  const classSummary = (character.classes || [])
+    .map((c) => `${c.name} ${c.level}`)
+    .join(' / ') || 'Level 1';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 animate-fade-in">
       <div
-        className="bg-[#faf6f0] border-2 border-stone-400 rounded shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]"
+        className="bg-[#faf6f0] border-2 border-stone-400 rounded shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Banner Header */}
@@ -213,7 +157,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           <div className="flex items-center gap-2">
             <Folder className="w-4 h-4 text-amber-300" />
             <h2 className="font-fantasy font-bold tracking-wide text-sm">
-              {mode === 'save' ? 'SAVE CHARACTER SHEET' : 'LOAD CHARACTER SHEET'}
+              {mode === 'save' ? 'SAVE & BACKUP CHARACTER' : 'LOAD CHARACTER'}
             </h2>
           </div>
           <button
@@ -225,12 +169,15 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           </button>
         </div>
 
-        {/* Mode Switch Tabs & Path Header */}
-        <div className="bg-stone-200/90 border-b border-stone-300 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+        {/* Mode Switch Tabs */}
+        <div className="bg-stone-200/90 border-b border-stone-300 px-4 py-2 flex items-center justify-between gap-2 text-xs shrink-0">
           <div className="flex items-center gap-1 bg-stone-300/80 p-0.5 rounded border border-stone-400/50">
             <button
               type="button"
-              onClick={() => setMode('save')}
+              onClick={() => {
+                setMode('save');
+                setShowCopyPrompt(false);
+              }}
               className={`flex items-center gap-1.5 px-3 py-1 rounded font-bold transition-all ${
                 mode === 'save'
                   ? 'bg-[#7b1113] text-white shadow-xs'
@@ -238,11 +185,14 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
               }`}
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Save Mode</span>
+              <span>Save / Backup</span>
             </button>
             <button
               type="button"
-              onClick={() => setMode('load')}
+              onClick={() => {
+                setMode('load');
+                setShowCopyPrompt(false);
+              }}
               className={`flex items-center gap-1.5 px-3 py-1 rounded font-bold transition-all ${
                 mode === 'load'
                   ? 'bg-[#7b1113] text-white shadow-xs'
@@ -250,36 +200,17 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
               }`}
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Load Mode</span>
+              <span>Load / Import</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-stone-600">
-            {isStaticHost ? (
-              <span className="font-mono text-[11px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 flex items-center gap-1.5 font-medium shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                <span>Web / Tablet Mode (LocalStorage Active)</span>
-              </span>
-            ) : (
-              <>
-                <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded border border-stone-300 flex items-center gap-1">
-                  <FolderOpen className="w-3 h-3 text-amber-700" />
-                  <span>Location: project/saves/</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={fetchSaves}
-                  className="p-1 hover:bg-stone-300 rounded text-stone-600 hover:text-stone-900 transition-colors"
-                  title="Refresh saves list"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                </button>
-              </>
-            )}
+          <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded font-medium">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Auto-Saved in Browser</span>
           </div>
         </div>
 
-        {/* Error Message */}
+        {/* Error Alert */}
         {error && (
           <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-red-700 text-xs flex items-center gap-1.5 shrink-0">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -287,92 +218,167 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
           </div>
         )}
 
-        {/* Save Form (Only in Save Mode and Local Dev Server) */}
-        {mode === 'save' && !isStaticHost && (
-          <form
-            onSubmit={handleSaveToProject}
-            className="p-3 bg-[#f6efe6] border-b border-stone-300 flex items-center gap-2 shrink-0 text-xs"
-          >
-            <div className="flex-1 flex items-center gap-1.5">
-              <label htmlFor="save-filename-input" className="font-bold text-stone-700 whitespace-nowrap">
-                Filename:
-              </label>
-              <input
-                id="save-filename-input"
-                type="text"
-                value={targetFilename}
-                onChange={(e) => setTargetFilename(e.target.value)}
-                placeholder="character_sheet.json"
-                className="w-full bg-white border border-stone-300 rounded px-2.5 py-1 text-xs font-mono font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#7b1113]"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !targetFilename.trim()}
-              className="flex items-center gap-1.5 px-3 py-1 bg-[#7b1113] hover:bg-[#630e10] text-white rounded font-bold transition-colors shadow-xs disabled:opacity-50 whitespace-nowrap"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>{willOverwrite ? 'Overwrite in /saves' : 'Save to /saves'}</span>
-            </button>
-          </form>
-        )}
-
-        {/* Load Actions / Create New Character Bar (Only in Load Mode) */}
-        {mode === 'load' && (
-          <div className="p-2.5 bg-[#f6efe6] border-b border-stone-300 flex items-center justify-between gap-3 shrink-0 text-xs">
-            <div className="flex items-center gap-2 text-stone-700">
-              <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
-              <div>
-                <span className="font-bold block text-stone-800">Start with a blank sheet?</span>
-                <span className="text-[11px] text-stone-500">Resets to the default Level 1 Wizard template</span>
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          {/* Active Character Summary Card */}
+          <div className="bg-white border border-stone-300 rounded-lg p-3 flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-300 flex items-center justify-center text-[#7b1113] font-bold text-base font-fantasy shrink-0">
+                {(character.name || '?')[0].toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <div className="font-fantasy font-bold text-stone-900 text-sm truncate">
+                  {character.name || 'Unnamed Character'}
+                </div>
+                <div className="text-[11px] text-stone-500 truncate">
+                  {character.race || 'Unknown Race'} • {classSummary}
+                  {character.customSpells && character.customSpells.length > 0
+                    ? ` • ${character.customSpells.length} Custom Spell(s)`
+                    : ''}
+                </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleCreateNewCharacter}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#166534] hover:bg-[#14532d] text-white rounded font-bold transition-colors shadow-xs whitespace-nowrap text-xs"
-              title="Create a fresh blank Level 1 character sheet"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>New Character</span>
-            </button>
+            <div className="text-right shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
+                Total Level
+              </span>
+              <span className="font-mono font-extrabold text-stone-800 text-base">
+                {character.level || 1}
+              </span>
+            </div>
           </div>
-        )}
 
-        {/* Folder View Table or Static Host Device Storage Card */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {isStaticHost ? (
-            <div className="border border-stone-300 rounded-lg p-6 text-center text-stone-700 text-xs bg-white space-y-4 shadow-2xs">
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto text-amber-800">
-                <HardDrive className="w-6 h-6" />
-              </div>
-              <div className="space-y-1.5">
-                <h4 className="font-fantasy font-bold text-stone-900 text-sm">
-                  {mode === 'save' ? 'Browser & Tablet Storage (Auto-Saved)' : 'Import Character JSON'}
-                </h4>
-                <p className="text-stone-600 text-xs max-w-md mx-auto leading-relaxed">
-                  {mode === 'save'
-                    ? 'All changes to your character are automatically saved to your device storage in real time. You can also download a standalone .json backup file to your tablet or computer.'
-                    : 'Select a previously saved .json character file from your tablet or computer to load.'}
+          {mode === 'save' ? (
+            <div className="space-y-4">
+              {/* Device Storage Status Note */}
+              <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-3 text-stone-700 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-stone-900 text-xs">
+                  <HardDrive className="w-4 h-4 text-amber-700" />
+                  <span>Your character is continuously auto-saved</span>
+                </div>
+                <p className="text-[11px] text-stone-600 leading-relaxed">
+                  All stat tweaks, HP changes, and spell slot tracking are automatically kept in your
+                  browser/tablet storage. Use the options below to download an offline JSON file for
+                  backup or to copy your character to another device.
                 </p>
               </div>
 
-              <div className="pt-2 flex flex-wrap justify-center gap-2">
-                {mode === 'save' ? (
+              {/* Download Backup Box */}
+              <div className="bg-white border border-stone-300 rounded-lg p-3 space-y-2.5 shadow-2xs">
+                <div className="font-bold text-stone-800 flex items-center justify-between">
+                  <span>Download Backup (.json)</span>
+                  <span className="text-[11px] text-stone-400 font-normal">Compatible with PC & Tablet</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={targetFilename}
+                    onChange={(e) => setTargetFilename(e.target.value)}
+                    placeholder="character_sheet.json"
+                    className="flex-1 bg-stone-50 border border-stone-300 rounded px-2.5 py-1.5 text-xs font-mono font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#7b1113]"
+                  />
+
                   <button
                     type="button"
-                    onClick={handleNativeSave}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#7b1113] hover:bg-[#630e10] text-white rounded font-bold transition-colors shadow-xs"
+                    onClick={handleDownload}
+                    disabled={loading || !targetFilename.trim()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7b1113] hover:bg-[#630e10] text-white rounded font-bold transition-colors shadow-xs disabled:opacity-50 whitespace-nowrap"
                   >
-                    <Download className="w-4 h-4" />
-                    <span>Download Character Backup (.json)</span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download File</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Save As Copy Section */}
+              <div className="bg-white border border-stone-300 rounded-lg p-3 space-y-2.5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-stone-800">
+                    <Copy className="w-4 h-4 text-blue-700" />
+                    <span>Save As Copy / Branch Character</span>
+                  </div>
+                  {!showCopyPrompt && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCopyPrompt(true)}
+                      className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded font-semibold text-xs transition-colors"
+                    >
+                      Duplicate...
+                    </button>
+                  )}
+                </div>
+
+                {showCopyPrompt ? (
+                  <div className="space-y-2 pt-1 border-t border-stone-200">
+                    <p className="text-[11px] text-stone-500">
+                      Creates a completely independent duplicate of this sheet (e.g., to level up a new build or start a new campaign):
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={copyName}
+                        onChange={(e) => setCopyName(e.target.value)}
+                        placeholder="Character Name (Copy)"
+                        className="flex-1 bg-stone-50 border border-stone-300 rounded px-2.5 py-1.5 text-xs font-semibold text-stone-900 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveAsCopy}
+                        disabled={!copyName.trim()}
+                        className="px-3 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded font-bold transition-colors shadow-xs disabled:opacity-50 whitespace-nowrap"
+                      >
+                        Create Copy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowCopyPrompt(false)}
+                        className="px-2 py-1.5 text-stone-500 hover:text-stone-700 font-semibold text-xs"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <label className="flex items-center gap-2 px-4 py-2 bg-[#1f4e78] hover:bg-[#163a5a] text-white rounded font-bold transition-colors shadow-xs cursor-pointer">
-                    <FolderOpen className="w-4 h-4" />
-                    <span>Choose JSON File From Device...</span>
+                  <p className="text-[11px] text-stone-500">
+                    Want to keep your base template safe? Create a separate copy under a new name without overwriting your original.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Import From Device File */}
+              <div className="bg-white border border-stone-300 rounded-lg p-5 text-center space-y-3 shadow-2xs">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center mx-auto">
+                  <FolderOpen className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-fantasy font-bold text-stone-900 text-sm">
+                    Open Character File From Device
+                  </h3>
+                  <p className="text-[11px] text-stone-500 max-w-sm mx-auto leading-relaxed">
+                    Select a previously downloaded <span className="font-mono font-bold">.json</span> character file from your computer or tablet storage.
+                  </p>
+                </div>
+
+                <div className="pt-1 flex flex-wrap justify-center gap-2">
+                  {'showOpenFilePicker' in window ? (
+                    <button
+                      type="button"
+                      onClick={handleNativeLoad}
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1f4e78] hover:bg-[#163a5a] text-white rounded font-bold transition-colors shadow-xs text-xs"
+                    >
+                      <FolderOpen className="w-4 h-4" />
+                      <span>Browse From Computer...</span>
+                    </button>
+                  ) : null}
+
+                  <label className="flex items-center gap-2 px-4 py-2 bg-[#1f4e78] hover:bg-[#163a5a] text-white rounded font-bold transition-colors shadow-xs text-xs cursor-pointer">
+                    <Upload className="w-4 h-4" />
+                    <span>Choose JSON File...</span>
                     <input
                       type="file"
                       accept=".json"
@@ -380,172 +386,54 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
                       className="hidden"
                     />
                   </label>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider flex items-center justify-between px-1">
-                <span>Files in project /saves directory ({saveFiles.length})</span>
-                {mode === 'save' && (
-                  <span className="font-normal text-stone-400">Click a file to select its name</span>
-                )}
+                </div>
               </div>
 
-          {saveFiles.length === 0 ? (
-            <div className="border border-dashed border-stone-300 rounded-md p-6 text-center text-stone-500 text-xs bg-white/50">
-              <Folder className="w-8 h-8 text-stone-400 mx-auto mb-2 opacity-50" />
-              <p className="font-semibold">No save files found in saves/ folder.</p>
-              <p className="text-[11px] text-stone-400 mt-1">
-                Save your character above to create your first project save file.
-              </p>
-            </div>
-          ) : (
-            <div className="border border-stone-300 rounded bg-white overflow-hidden divide-y divide-stone-200">
-              {saveFiles.map((file) => {
-                const isSelected =
-                  targetFilename.toLowerCase() === file.filename.toLowerCase();
-                const formattedDate = new Date(file.mtime).toLocaleString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                });
-                const sizeKb = (file.size / 1024).toFixed(1);
-
-                return (
-                  <div
-                    key={file.filename}
-                    onClick={() => {
-                      if (mode === 'save') {
-                        setTargetFilename(file.filename);
-                      }
-                    }}
-                    className={`p-2.5 flex items-center justify-between gap-3 text-xs transition-colors cursor-pointer ${
-                      isSelected && mode === 'save'
-                        ? 'bg-amber-50/80 border-l-4 border-l-[#7b1113]'
-                        : 'hover:bg-stone-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <FileText className="w-4 h-4 text-[#1f4e78] shrink-0 mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-stone-900 text-xs">
-                            {file.filename}
-                          </span>
-                          {file.meta?.name && (
-                            <span className="font-sans text-[11px] font-semibold text-[#7b1113] bg-red-50 border border-red-200 px-1.5 py-0.2 rounded">
-                              {file.meta.name}
-                              {file.meta.level ? ` (Lvl ${file.meta.level})` : ''}
-                            </span>
-                          )}
-                          {file.meta?.classes && (
-                            <span className="text-[10px] text-stone-500 truncate">
-                              {file.meta.classes}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-3 text-[10px] text-stone-400 mt-0.5">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formattedDate}
-                          </span>
-                          <span>•</span>
-                          <span>{sizeKb} KB</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action on row */}
-                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {mode === 'load' ? (
-                        <button
-                          type="button"
-                          onClick={() => handleLoadFromProject(file.filename)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#7b1113] hover:bg-[#630e10] text-white font-bold text-xs transition-colors shadow-2xs"
-                        >
-                          <Upload className="w-3 h-3" />
-                          <span>Load</span>
-                        </button>
-                      ) : (
-                        isSelected && (
-                          <span className="text-[11px] font-bold text-amber-700 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3 text-amber-700" />
-                            Selected
-                          </span>
-                        )
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteSave(file.filename, e)}
-                        className="p-1 text-stone-400 hover:text-red-700 hover:bg-stone-100 rounded transition-colors"
-                        title={`Delete ${file.filename}`}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {/* Start Blank Character */}
+              <div className="bg-white border border-stone-300 rounded-lg p-3 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5 text-stone-700 min-w-0">
+                  <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <div>
+                    <span className="font-bold block text-stone-800 text-xs">Start Fresh Character</span>
+                    <span className="text-[11px] text-stone-500 block">
+                      Resets to a clean blank Level 1 character sheet
+                    </span>
                   </div>
-                );
-              })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCreateNewCharacter}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#166534] hover:bg-[#14532d] text-white rounded font-bold transition-colors shadow-xs text-xs shrink-0"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>New Character</span>
+                </button>
+              </div>
+
+              {/* Tips */}
+              <div className="bg-stone-50 border border-stone-200 rounded p-2.5 text-[11px] text-stone-500 space-y-1">
+                <div className="font-semibold text-stone-700 flex items-center gap-1">
+                  <FileCheck className="w-3.5 h-3.5 text-stone-500" />
+                  <span>Transferring characters between devices:</span>
+                </div>
+                <p>
+                  To play on another device (like your Samsung tablet), download your sheet on PC, email or save the file to your tablet, and click <strong>Choose JSON File</strong> on the tablet. Custom spells are automatically imported with your character!
+                </p>
+              </div>
             </div>
-          )}
-            </>
           )}
         </div>
 
-        {/* Modal Footer: External Native OS Folder Picker Fallback */}
-        <div className="bg-stone-100 border-t border-stone-300 p-3 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
-          <div className="flex items-center gap-1 text-stone-600">
-            <HardDrive className="w-3.5 h-3.5 text-stone-500" />
-            <span className="text-[11px]">Save/Load outside project:</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {'showSaveFilePicker' in window && mode === 'save' ? (
-              <button
-                type="button"
-                onClick={handleNativeSave}
-                className="flex items-center gap-1.5 px-3 py-1 rounded bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold transition-colors shadow-2xs"
-                title="Open system folder dialog to choose any folder on your computer"
-              >
-                <FolderOpen className="w-3.5 h-3.5 text-amber-700" />
-                <span>Browse Other Folder...</span>
-              </button>
-            ) : 'showOpenFilePicker' in window && mode === 'load' ? (
-              <button
-                type="button"
-                onClick={handleNativeLoad}
-                className="flex items-center gap-1.5 px-3 py-1 rounded bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold transition-colors shadow-2xs"
-                title="Open system file picker to select a JSON file on your computer"
-              >
-                <FolderOpen className="w-3.5 h-3.5 text-amber-700" />
-                <span>Browse From Computer...</span>
-              </button>
-            ) : (
-              <label className="flex items-center gap-1.5 px-3 py-1 rounded bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 font-semibold transition-colors shadow-2xs cursor-pointer">
-                <FolderOpen className="w-3.5 h-3.5 text-amber-700" />
-                <span>Browse File...</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleTraditionalFileImport}
-                  className="hidden"
-                />
-              </label>
-            )}
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3 py-1 rounded bg-stone-200 hover:bg-stone-300 text-stone-800 font-semibold transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+        {/* Modal Footer */}
+        <div className="bg-stone-100 border-t border-stone-300 p-3 flex items-center justify-end gap-2 text-xs shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 rounded bg-stone-200 hover:bg-stone-300 text-stone-800 font-semibold transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

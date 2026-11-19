@@ -264,17 +264,16 @@ export const MasterSpellModal: React.FC<{
                 <th className="w-16 text-center px-1">Level</th>
                 <th className="text-left px-3">Spell Name</th>
                 <th className="w-20 text-center px-1">School</th>
-                <th className="w-28 text-left px-2">Casting Time</th>
+                <th className="w-20 text-left px-2">Casting Time</th>
                 <th className="w-24 text-left px-2">Range</th>
                 <th className="w-28 text-left px-2">Duration</th>
                 <th className="w-14 text-center px-1">Tags</th>
-                <th className="w-28 text-center px-2">Status</th>
               </tr>
             </thead>
             <tbody>
               {filteredSpells.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-stone-500 text-xs">
+                  <td colSpan={8} className="py-12 text-center text-stone-500 text-xs">
                     No spells match your current search and filters.
                   </td>
                 </tr>
@@ -382,9 +381,9 @@ export const MasterSpellModal: React.FC<{
                           </span>
                         </td>
 
-                        {/* Casting Time (Truncated to 2-word limit) */}
+                        {/* Casting Time (Truncated to ~2/3 width w-20) */}
                         <td
-                          className="w-28 text-left px-2 font-mono text-stone-700 text-[11px] truncate"
+                          className="w-20 text-left px-2 font-mono text-stone-700 text-[11px] truncate"
                           title={spell.castingTime}
                         >
                           {formatCastingTime(spell.castingTime)}
@@ -421,42 +420,12 @@ export const MasterSpellModal: React.FC<{
                             )}
                           </div>
                         </td>
-
-                        {/* Prepare Action Button (Wider w-28, whitespace-nowrap prevents + wrapping) */}
-                        <td className="w-28 text-center px-2">
-                          {prepared && locked ? (
-                            <button
-                              type="button"
-                              disabled
-                              title="Spell is locked on spell sheet. Unlock on spell sheet to remove."
-                              className="w-full py-0.5 rounded text-[10px] font-bold bg-[#7b1113]/70 text-white cursor-not-allowed opacity-80 flex items-center justify-center gap-1 shadow-2xs whitespace-nowrap"
-                            >
-                              <Lock className="w-3 h-3" />
-                              <span>Locked</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePreparedSpell(spell.name);
-                              }}
-                              className={`w-full py-0.5 rounded text-[10px] font-bold transition-all shadow-2xs whitespace-nowrap flex items-center justify-center gap-0.5 ${
-                                prepared
-                                  ? 'bg-[#7b1113] hover:bg-[#630e10] text-white'
-                                  : 'bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 hover:border-stone-400'
-                              }`}
-                            >
-                              <span>{prepared ? 'Prepared' : '+ Prepare'}</span>
-                            </button>
-                          )}
-                        </td>
                       </tr>
 
                       {/* In-Flow Accordion Drawer */}
                       {isExpanded && (
                         <tr className="bg-[#faf6f0] border-b border-stone-300">
-                          <td colSpan={9} className="p-3.5 space-y-2.5 text-xs text-stone-800">
+                          <td colSpan={8} className="p-3.5 space-y-2.5 text-xs text-stone-800">
                             {/* Meta tags bar */}
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-600 pb-2 border-b border-stone-200">
                               <div>

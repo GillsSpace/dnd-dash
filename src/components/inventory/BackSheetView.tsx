@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
-import { Coins, Backpack, Plus, Trash2, Scale, BookOpen, Edit3, ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { Coins, Backpack, Plus, Minus, Trash2, Scale, BookOpen, Edit3, ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { InventoryItem } from '../../types/character';
 import { Tooltip } from '../common/Tooltip';
 
@@ -251,25 +251,48 @@ export const BackSheetView: React.FC = () => {
                 const label = coin.toUpperCase();
                 const val = character.currency[coin];
                 return (
-                  <div key={coin} className="bg-white border border-stone-400 p-2 rounded shadow-2xs">
+                  <div key={coin} className="bg-white border border-stone-400 p-2 rounded shadow-2xs flex flex-col items-center justify-between">
                     <span className="block text-[10px] font-bold text-stone-600 uppercase tracking-wider">{label}</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={val}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        const clean = e.target.value.replace(/[^0-9]/g, '');
-                        updateCoin(coin, clean === '' ? 0 : parseInt(clean, 10));
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          (e.target as HTMLInputElement).blur();
-                        }
-                      }}
-                      className="w-full text-center font-mono text-xl font-bold text-stone-900 bg-transparent hover:bg-stone-50 focus:bg-amber-50/70 focus:outline-none rounded py-0.5 cursor-pointer my-0.5 transition-colors"
-                      title={`Click to edit ${label} count`}
-                    />
+                    <div className="flex items-center justify-center gap-1 my-1 w-full">
+                      <button
+                        type="button"
+                        onClick={() => updateCoin(coin, Math.max(0, val - 1))}
+                        disabled={val <= 0}
+                        className="w-5 h-5 rounded flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 border border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer select-none shrink-0"
+                        title={`Subtract 1 ${label}`}
+                        aria-label={`Subtract 1 ${label}`}
+                      >
+                        <Minus className="w-3 h-3 stroke-[2.5]" />
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={val}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                          updateCoin(coin, clean === '' ? 0 : parseInt(clean, 10));
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                        }}
+                        className="w-14 text-center font-mono text-base font-bold text-stone-900 bg-stone-50 border border-stone-300 hover:border-stone-400 focus:bg-amber-50/70 focus:border-[#1f4e78] focus:outline-none rounded py-0.5 cursor-text transition-colors"
+                        title={`Click to edit ${label} count (up to 4 digits)`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateCoin(coin, Math.min(9999, val + 1))}
+                        disabled={val >= 9999}
+                        className="w-5 h-5 rounded flex items-center justify-center bg-stone-100 hover:bg-stone-200 active:bg-stone-300 text-stone-700 border border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer select-none shrink-0"
+                        title={`Add 1 ${label}`}
+                        aria-label={`Add 1 ${label}`}
+                      >
+                        <Plus className="w-3 h-3 stroke-[2.5]" />
+                      </button>
+                    </div>
                     <span className="block text-[9px] text-stone-400 font-mono">
                       {coin === 'cp' && 'Copper'}
                       {coin === 'sp' && 'Silver'}

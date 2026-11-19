@@ -369,11 +369,11 @@ export const SpellSheetView: React.FC<{
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-stone-100 text-stone-700 border-b border-stone-300 font-bold text-[10px]">
-                        <th className="px-3 py-1">Spell Name</th>
+                        <th className="px-3 py-1 w-48">Spell Name</th>
                         <th className="px-2 w-20 text-center">School</th>
-                        <th className="px-2 w-28">Casting Time</th>
+                        <th className="px-2 w-24">Casting Time</th>
                         <th className="px-2 w-24">Range</th>
-                        <th className="px-2 w-28">Duration</th>
+                        <th className="px-2 w-36">Duration</th>
                         <th className="px-2 w-16 text-center">Tags</th>
                         <th className="px-2 w-1/5 text-left">Notes</th>
                         <th className="px-2 w-14 text-center"></th>
@@ -395,7 +395,7 @@ export const SpellSheetView: React.FC<{
                               }`}
                             >
                               {/* Spell Name with Expand Chevron & Tooltip */}
-                              <td className="px-3 py-1.5 font-bold text-stone-900">
+                              <td className="px-3 py-1.5 font-bold text-stone-900 w-48">
                                 <div className="flex items-center gap-1.5">
                                   <button
                                     type="button"
@@ -418,7 +418,7 @@ export const SpellSheetView: React.FC<{
                                     <button
                                       type="button"
                                       onClick={() => toggleExpand(spell.name)}
-                                      className="text-left cursor-pointer hover:text-[#1f4e78] underline decoration-dotted font-bold text-stone-900"
+                                      className="text-left cursor-pointer hover:text-[#1f4e78] underline decoration-dotted font-bold text-stone-900 truncate"
                                     >
                                       {spell.name}
                                     </button>
@@ -437,7 +437,7 @@ export const SpellSheetView: React.FC<{
 
                               {/* Casting Time (Truncated to 2-word limit) */}
                               <td
-                                className="px-2 text-stone-700 font-mono text-[11px]"
+                                className="px-2 w-24 text-stone-700 font-mono text-[11px]"
                                 title={spell.castingTime}
                               >
                                 {formatCastingTime(spell.castingTime)}
@@ -448,8 +448,8 @@ export const SpellSheetView: React.FC<{
                                 {spell.range}
                               </td>
 
-                              {/* Duration */}
-                              <td className="px-2 text-stone-700 font-mono text-[11px]">
+                              {/* Duration (Wider w-36 to fit 2 lines for 1 minute / 10 minutes) */}
+                              <td className="px-2 w-36 text-stone-700 font-mono text-[11px] leading-tight">
                                 {spell.duration}
                               </td>
 

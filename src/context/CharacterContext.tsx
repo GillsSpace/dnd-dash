@@ -207,7 +207,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [currentSaveFilename]);
 
-  // Synchronize initiative dynamically with Dexterity modifier and Alert feat
+  // Synchronize initiative dynamically with Dexterity modifier, Alert feat, and custom bonus
   useEffect(() => {
     const dexScore = character.abilities?.dex?.score ?? 10;
     const dexMod = Math.floor((dexScore - 10) / 2);
@@ -215,7 +215,8 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
     );
     const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
-    const expectedInit = dexMod + alertBonus;
+    const customBonus = character.initiativeBonus || 0;
+    const expectedInit = dexMod + alertBonus + customBonus;
 
     if (character.initiative !== expectedInit) {
       setCharacter((prev) => ({
@@ -223,7 +224,13 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         initiative: expectedInit,
       }));
     }
-  }, [character.abilities?.dex?.score, character.proficiencyBonus, character.features, character.initiative]);
+  }, [
+    character.abilities?.dex?.score,
+    character.proficiencyBonus,
+    character.features,
+    character.initiativeBonus,
+    character.initiative,
+  ]);
 
   // Ensure multiclass Hit Dice pools are always present and synchronized with classes
   useEffect(() => {
@@ -412,6 +419,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
       );
       const alertBonus = hasAlert ? (prev.proficiencyBonus || 2) : 0;
+      const customBonus = prev.initiativeBonus || 0;
 
       return {
         ...prev,
@@ -419,7 +427,7 @@ export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         baseStatsLocked: false,
         abilities: updatedAbilities,
         armorClass: newAc,
-        initiative: dexMod + alertBonus,
+        initiative: dexMod + alertBonus + customBonus,
       };
     });
   };

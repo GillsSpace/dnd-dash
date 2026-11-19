@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useCharacter } from '../../context/CharacterContext';
 import { Tooltip } from '../common/Tooltip';
+import { Edit2 } from 'lucide-react';
+import { InitiativeModal } from '../modals/InitiativeModal';
 
 export const CombatSection: React.FC = () => {
   const {
@@ -14,6 +16,7 @@ export const CombatSection: React.FC = () => {
   } = useCharacter();
 
   const [customHpVal, setCustomHpVal] = useState('');
+  const [isInitiativeModalOpen, setIsInitiativeModalOpen] = useState(false);
 
   const toggleDeathSave = (type: 'successes' | 'failures', index: number) => {
     updateCharacter((prev) => {
@@ -54,6 +57,12 @@ export const CombatSection: React.FC = () => {
   const shieldAc = shieldItem ? (shieldItem.ac || 2) : 0;
   const computedTotalAc = baseArmorAc + dexApplied + shieldAc;
   const effectiveAc = character.armorClass || computedTotalAc;
+
+  // Initiative Calculations
+  const hasAlert = (character.features || []).some(
+    (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
+  );
+  const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
 
   return (
     <div className="h-full flex flex-col space-y-1">
@@ -169,9 +178,18 @@ export const CombatSection: React.FC = () => {
           </div>
 
           {/* Initiative Box (Moved from Core Info to right of AC) */}
-          <div className="col-span-6 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between text-center">
-            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide">
-              INITIATIVE
+          <div className="col-span-6 sm:col-span-4 border border-stone-400 bg-white flex flex-col justify-between text-center relative group">
+            <div className="bg-[#1f4e78] text-white font-bold py-0.5 text-[11px] tracking-wide flex items-center justify-between px-2">
+              <span className="flex-1 text-center">INITIATIVE</span>
+              <button
+                type="button"
+                onClick={() => setIsInitiativeModalOpen(true)}
+                className="p-0.5 hover:bg-white/20 rounded text-white/80 hover:text-white transition-colors"
+                title="Edit Initiative modifier & note"
+                aria-label="Edit Initiative"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
             </div>
             <div className="p-2 flex flex-col items-center justify-center flex-1">
               {(() => {
@@ -179,22 +197,65 @@ export const CombatSection: React.FC = () => {
                   (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
                 );
                 const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
-                const effectiveInitiative = dexMod + alertBonus;
+                const customBonus = character.initiativeBonus || 0;
+                const effectiveInitiative = dexMod + alertBonus + customBonus;
                 return (
                   <>
-                    <div className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm">
-                      {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}
+                    <div className="flex items-center justify-center gap-1.5 relative">
+                      {character.initiativeNote ? (
+                        <Tooltip
+                          content={
+                            <div className="space-y-1">
+                              <p className="font-fantasy font-bold text-amber-300">Initiative Note</p>
+                              <p className="text-xs text-slate-200 whitespace-pre-wrap">{character.initiativeNote}</p>
+                            </div>
+                          }
+                        >
+                          <div
+                            className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm cursor-help hover:border-amber-600 transition-colors"
+                            title={character.initiativeNote}
+                          >
+                            {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}
+                          </div>
+                        </Tooltip>
+                      ) : (
+                        <div className="w-14 h-10 bg-[#d9ead3] border border-[#276749] rounded flex items-center justify-center font-mono font-extrabold text-2xl text-stone-900 shadow-sm">
+                          {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setIsInitiativeModalOpen(true)}
+                        className={`p-1 rounded transition-colors ${
+                          character.initiativeBonus || character.initiativeNote
+                            ? 'text-[#1f4e78] bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                            : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+                        }`}
+                        title="Edit Initiative modifier & note"
+                        aria-label="Edit Initiative Modifier and Note"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
+
                     <span className="text-[10px] text-stone-500 mt-1 font-mono text-center">
                       = DEX Modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
                       {hasAlert ? ` + Alert (+${alertBonus})` : ''}
+                      {customBonus !== 0 ? ` + Mod (${customBonus >= 0 ? `+${customBonus}` : customBonus})` : ''}
                     </span>
                   </>
                 );
               })()}
             </div>
             <div className="bg-stone-100 border-t border-stone-300 text-[10px] text-stone-600 py-0.5 px-1 truncate text-center">
-              Bonus to Initiative rolls
+              {character.initiativeNote ? (
+                <span className="text-amber-800 font-semibold truncate block" title={character.initiativeNote}>
+                  📝 {character.initiativeNote}
+                </span>
+              ) : (
+                'Bonus to Initiative rolls'
+              )}
             </div>
           </div>
         </div>
@@ -393,6 +454,14 @@ export const CombatSection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Initiative Modifier & Note Modal */}
+      <InitiativeModal
+        isOpen={isInitiativeModalOpen}
+        onClose={() => setIsInitiativeModalOpen(false)}
+        dexMod={dexMod}
+        alertBonus={alertBonus}
+      />
     </div>
   );
 };

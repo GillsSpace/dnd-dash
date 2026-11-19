@@ -11,7 +11,8 @@ export const CombatVitals: React.FC = () => {
     (f) => f.name?.toLowerCase().trim() === 'alert' || f.name?.toLowerCase().includes('alert')
   );
   const alertBonus = hasAlert ? (character.proficiencyBonus || 2) : 0;
-  const effectiveInitiative = dexMod + alertBonus;
+  const customBonus = character.initiativeBonus || 0;
+  const effectiveInitiative = dexMod + alertBonus + customBonus;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -46,8 +47,15 @@ export const CombatVitals: React.FC = () => {
           <div className="space-y-1">
             <p className="font-fantasy font-bold text-amber-300">Initiative: {effectiveInitiative >= 0 ? `+${effectiveInitiative}` : effectiveInitiative}</p>
             <p className="text-[11px] text-slate-300">
-              Calculated from your Dexterity modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod}){hasAlert ? ` + Alert feat (+${alertBonus})` : ''}.
+              Calculated from your Dexterity modifier ({dexMod >= 0 ? `+${dexMod}` : dexMod})
+              {hasAlert ? ` + Alert feat (+${alertBonus})` : ''}
+              {customBonus !== 0 ? ` + Custom modifier (${customBonus >= 0 ? `+${customBonus}` : customBonus})` : ''}.
             </p>
+            {character.initiativeNote && (
+              <p className="text-xs text-amber-200 pt-1 border-t border-slate-700">
+                Note: {character.initiativeNote}
+              </p>
+            )}
             <p className="text-[10px] text-slate-400">Rolled at the start of combat for turn order.</p>
           </div>
         }

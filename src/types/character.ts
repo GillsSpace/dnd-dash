@@ -201,6 +201,8 @@ export interface CharacterData {
     other?: string;
   };
   initiative: number;
+  initiativeBonus?: number;
+  initiativeNote?: string;
   proficiencyBonus: number;
   passives: {
     perception: number;
